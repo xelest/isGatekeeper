@@ -1,5 +1,5 @@
 <?php 
-  $con = mysqli_connect('localhost', 'root', 'mclccisn_gatekeeper', 'mclccisn_gatekeeper');
+  $con = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
   
   //on page load
   $username = "";
@@ -8,22 +8,24 @@
   $pwd1 = "changeme";
 
   if (isset($_POST['pwdreset'])) {
-  	$uid = $_POST['user_id'];
+  	$uname = $_POST['uname'];
     $pwdN = passAjinomoto($pwd1);
-    $role = $_POST['role'];
-    $status = "deactivated";
+    $status = "A";
 
-      $sql_u = "SELECT * FROM accounts WHERE `account_id`='$uid'";
+  if($uname != 'admin')
+  {
+      $sql_u = "SELECT * FROM systemusers WHERE `uname`='$uname'";
       $res_u = mysqli_query($con, $sql_u);
     
       if (mysqli_num_rows($res_u) > 0) 
       {
-          $query = "UPDATE `user_account` SET `password`='$pwdN',`status`='$status' WHERE `id_no`='$uid'";
+          $query = "UPDATE `systemusers` SET `password`='$pwdN',`status`='$status' WHERE `uname`='$uname'";
                     
            $results = mysqli_query($con, $query);
            //echo 'Saved!';
-           echo "<script type='text/javascript'>alert('Request has been processed!');</script>";
+           echo "<script type='text/javascript'>alert('Password Reset Success!');</script>";
            exit();
+          header('location: login.html');
        
       }
       else
@@ -31,6 +33,12 @@
         $name_error = "invalid request"; 
         echo "<script type='text/javascript'>alert('$name_error');</script>";
       }
+  }
+  else
+  {
+      echo "<script type='text/javascript'>alert('Not allowed to reset System Administrator');</script>";
+  }
+
   }
 
   function passAjinomoto($keypass){

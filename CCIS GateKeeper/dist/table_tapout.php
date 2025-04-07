@@ -1,7 +1,7 @@
 <table id="tapout_table" class="table table-striped table-bordered" style="width:100%">
               <thead>
                   <tr>     
-                      <th>Log No</th>  
+
                       <th>ID No</th>
                       <th>Tap OUT</th>
                   </tr>
@@ -13,7 +13,7 @@
             include_once('connection.php');
           
          
-          $msql = "SELECT `log_no`, `id_no`, `outDate` FROM `tapout_logs`";
+          $msql = "SELECT  `id_no`, `outDate` FROM `tapout_logs` WHERE `outDate`>=(CURRENT_DATE())  order by `outDate` DESC LIMIT 3";
           //fetch
           $result1 = mysqli_query($con, $msql);
 

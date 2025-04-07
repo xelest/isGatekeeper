@@ -2,7 +2,6 @@
 <table id="tapin_table" class="table table-striped table-bordered" style="width:100%">
               <thead>
                   <tr>     
-                      <th>Log No</th>  
                       <th>ID No</th>
                       <th>Tap In</th>
                   </tr>
@@ -14,7 +13,7 @@
             include_once('connection.php');
           
          
-          $msql = "SELECT `log_no`, `id_no`, `inDate` FROM `tapin_logs`";
+          $msql = "SELECT  `id_no`, `inDate` FROM `tapin_logs` WHERE `inDate`>=(CURRENT_DATE()) order by `inDate` DESC LIMIT 3";
           //fetch
           $result1 = mysqli_query($con, $msql);
 

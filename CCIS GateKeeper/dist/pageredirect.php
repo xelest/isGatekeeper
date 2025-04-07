@@ -34,12 +34,12 @@
                 <main>
                     <div class="container">
                         <div class="row justify-content-center mt-5">
-                            <div class="col-md-4 col-lg-5 mt-5">
+                            <div class="col-md-7 col-lg-7 mt-5">
                                       <div class="login-logo mt-5">
                                         <div><a href="#" class="mt-5"><h1 class="text-center font-weight-light mt-5"><b>R E D I R E C T I N G</b></h1></a></div>
                                         <div><h1 class="text-center font-weight-light my-3" id="countdown">5</h1></div>
                                       </div>
-                                      <p class="login-box-msg text-center font-weight-light my-3">Thank you for visiting.</p>
+                                      <p class="login-box-msg text-center font-weight-light my-3">S E S S I O N&nbsp;&nbsp;S E C U R I T Y</p>
                                       <!-- /.login-logo -->
                                     
 

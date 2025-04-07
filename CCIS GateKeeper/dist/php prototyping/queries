@@ -1,0 +1,33 @@
+
+$stime = array('','','','','','','','','','','','',);
+$etime = array('','','','','','','','','','','','',);
+
+SELECT  COUNT(outDate) as population
+FROM tapout_logs WHERE DATE(`outDate`) = DATE(CURDATE()) 
+AND HOUR(`outDate`) >= HOUR('06:59:00')
+AND HOUR(`outDate`) <= HOUR('08:00:00')
+
+SELECT COUNT(outDate) as population
+FROM tapout_logs WHERE DATE(`outDate`) = DATE(CURDATE()) 
+AND HOUR(`outDate`) >= HOUR('07:00:00')
+AND HOUR(`outDate`) <= HOUR('12:00:00')
+
+SELECT  COUNT(outDate) as population
+FROM tapout_logs WHERE DATE(`outDate`) = DATE(CURDATE()) 
+AND HOUR(`outDate`) >= HOUR('06:59:00')
+AND HOUR(`outDate`) <= HOUR('08:00:00')
+
+
+switch(get_what)
+{
+	case 1:
+	break;
+	case 2;
+	break:
+	case 3;
+	break;
+	default;
+
+
+
+}

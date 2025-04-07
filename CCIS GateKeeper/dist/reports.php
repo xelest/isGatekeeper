@@ -32,22 +32,39 @@
                         </div>
                     </div>
                     <div class="row">
-                         <div class="col-5 col-md-4"></div>
-                         <div class="col-4 col-md-4"></div>
-
-                        <div class="col-3 col-md-4">
+                         <div class="col-3 col-md-4">
                                 <div class="row">
-                                    <div class="col-6" style="">
-                                        <input type="text" class="form-control datepicker-here" data-range="false" data-multiple-dates-separator="-" id="myTextbox" data-language="en" data-position="bottom left" aria-describedby="daterange" placeholder="From">
+                                    <div class="col-6" style="padding: 3px;">
+                                        <input type="text" class="form-control datepicker-here" data-range="true" data-multiple-dates-separator="-" id="myTextbox" data-language="en" data-position="bottom left" aria-describedby="daterange" placeholder="Date Range">
                                     </div>
-                                    <div class="col-6">
-                                        <input type="text" class="form-control datepicker-here" data-range="false" data-multiple-dates-separator="-" id="myTextbox2" data-language="en" data-position="bottom left" aria-describedby="daterange" placeholder="To">
+                                    <div class="col-4" style="padding: 3px;">
+                                        <input type="text" class="form-control" data-range="false" data-multiple-dates-separator="-" id="myTextbox2" data-language="en" data-position="bottom left" aria-describedby="daterange" placeholder="ID No.">
                                     </div>
-                                
+                                    <div class="col-2" style="padding: 3px;">
+                                        <button class="btn btn-primary" id="test" onClick="test()"> TESTTESTTEST </button>
+                                    </div>
+  
                             </div>
-                        
-                        
+
                     </div>
+                    <div class="col-5 col-md-4"></div>
+                     <div class="col-5 col-md-4">
+                        <div class="row">
+                            <div class="col-6">
+                            <select class="form-control">
+                              <option>Default select</option>
+                            </select></div>
+
+                            <div class="col-6">
+                            <select class="form-control">
+                              <option>Default select</option>
+                            </select></div>
+                        </div>
+                         </div> 
+                </div>
+                <div class="row">
+                    
+
                 </div>
             </div>
 
@@ -79,9 +96,15 @@
         });
 
         $('#myTextbox2').on('input', function() {
-            var y = document.getElementById("myTextbox2").value; 
-            alert(y);
+            var y = document.getElementById("myTextbox2").value;
         });
+
+         
+        function test()
+        {
+             var y = document.getElementById("myTextbox2").value; 
+             alert(y);
+        }
 
     </script>
 

@@ -44,3 +44,13 @@
       background-color: #E57466 !important;
       color: #white !important;
     }
+
+    .btn-primary{
+      background-color: #337AB7 !important;
+      color: #white !important;
+    }
+
+    .btn-primary:hover{
+      background-color: #286090 !important;
+      color: #white !important;
+    }

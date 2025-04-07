@@ -1,0 +1,18 @@
+echo" <td>
+                <a  href=\"http://localhost:63342/ojt2/views/edit_rooms.php?edit=".$extract["assign_id"]."\" type=\"submit\" title='Edit Info' name=\"edit\" id=\"edit\"  class=\"btn btn-outline-success  btn-sm\"><i class=\"fas fa-pencil-square-o ml-1\"></i></a>
+
+                <a href = \"http://localhost:63342/ojt2/views/delete_rooms.php?delete=".$extract["assign_id"]."\"  type=\"submit\" title='Delete' id=\"delete\" name=\"delete\"  class=\"btn btn-outline-danger  btn-sm\"  ><i class=\"fas fa-trash-alt\"></i></a>
+ </td>";
+
+
+ Experienced and well rounded person with a Bachelor's degree in Information Technology from Malayan Colleges Laguna.  With a long history of working in Information Technology and Services Industry. Handled projects from initial conception to completion with great technical troubleshooting skills. A customer liaison, providing technical support and sales . Skilled in PHP, Databases, Java JavaScript, HTML, CSS, Java, C# and C++. 
+
+
+ ego thrives in ,
+a self serving ecosystem of selfrighteousness 
+anything that is said,
+
+till death is near realization,
+only then humility arises
+
+to preserve , regardless of position and power

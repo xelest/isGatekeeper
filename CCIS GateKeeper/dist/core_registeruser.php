@@ -14,29 +14,37 @@
 
 
  if (isset($_POST['register'])) {
- 	$username = $_POST['username'];
- 	$fname = $_POST['fname'];
- 	$lname = $_POST['lname'];
-    $pwd1 = $_POST['pwd1'];
-    $pwd2 = $_POST['pwd2'];
+ 	$uname = $_POST['uname'];
+    $pwd1 = $_POST['pword'];
+    $pwd2 = $_POST['pword2'];
+    $dept = $_POST['department'];
     $pwdN = passAjinomoto($pwd1);
-    $role = $_POST['role'];
-    $status = "deactivated";
+    $urole = $_POST['urole'];
+    $status = "A";
 
-      $sql_u = "SELECT * FROM accounts WHERE username='$username'";
+      $sql_u = "SELECT * FROM systemusers WHERE uname='$uname'";
       $res_u = mysqli_query($con, $sql_u);
     
       if (mysqli_num_rows($res_u) > 0) 
       {
-        $name_error = "Sorry... username already taken"; 
+        if(strtoupper($uname)=='ADMIN')
+        {
+           $name_error = "NOT ALLOWED TO USE SYSTEM ADMIN AS ACCOUNT NAMES"; 
         echo "<script type='text/javascript'>alert('$name_error');</script>";
+        }
+        else
+        {
+          $name_error = "Sorry... username already taken"; 
+        echo "<script type='text/javascript'>alert('$name_error');</script>";
+        }
+        
       }
       else
       {
         if ($pwd1 === $pwd2)
         {
-           $query = "INSERT INTO accounts (`fname`, `lname`, `username`, `password`, `role`, `status`) 
-                    VALUES ('$fname','$lname','$username', '$pwdN', '$role', '$status')";
+           $query = "INSERT INTO systemusers (`uname`, `pword`, `status`, `urole`,`department`) 
+                    VALUES ('".$uname."','".$pwdN."', 'A', '".$urole."','".$dept."')";
                     
            $results = mysqli_query($con, $query);
            echo "<script type='text/javascript'>alert('Record created. Success!');</script>";
@@ -54,11 +62,11 @@
       $dbcon = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
       $p2 = $keypass;
       $p1 = md5($p2);
-      $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;");
+      $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;"); // 1st layer md5
       while($rowX = $getQRY->fetch_assoc()){
       $pwordX = $rowX['PWORD'];
       }
-      $pwordX = md5($pwordX);
+      $pwordX = md5($pwordX); // 2nd layer md5
       return $pwordX;
     }
 

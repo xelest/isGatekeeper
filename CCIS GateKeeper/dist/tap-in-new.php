@@ -1,74 +1,18 @@
 <?php 
 include_once 'connection.php';
 
-if(isset($_POST['submit_tapin']))
-{
-  if(isset($_POST['tap_in']))
-  {
-    $user = $_POST['tap_in'];
-    $res = mysqli_query($con, "SELECT * FROM user_information WHERE id_no='$user' LIMIT 1");
-    $row = mysqli_fetch_array($res);
 
-                if (mysqli_num_rows($res) > 0) // user exist
-                { 
-                    if($row['user_status'] == 'A'){
-                      $imgname = $row['id_no'];
-                      $bordercolor = "#83B336";
-                      $res2 = mysqli_query($con, "SELECT * FROM `attnmessage` WHERE `id_no`='$imgname' and `imsg_Status` = 'A' LIMIT 1");
-                      if ($res2->num_rows > 0) {
-                          // output data of each row
-                          while($row2 = $res2->fetch_assoc()) {
-                             $notif_msg_header = "WELCOME";
-                             $notif_msg_details = $row2['imsg_details'];
-                             $notif_msg_sender = $row2['imsg_sender'];
+$Write="<?php $" . "UIDresult=''; " . "echo $" . "UIDresult;" . " ?>";
+file_put_contents('UIDContainer.php',$Write);
 
-                                }
-                            } else {
-                              $notif_msg_header = "WELCOME";
-                              $notif_msg_details = "";
-                              $notif_msg_sender = "";
-                              $card1hide = "$('#card1').hide();";
-                            }
-                    }
-                    else
-                    {
-                       $imgname = $row['id_no'];
-                       $bordercolor = "##FFFF00";
-                       $notif_msg_header = "Welcome Back";
-                      $notif_msg_details = "You are not currently enrolled.";
-                      $notif_msg_sender = "";
-                      $card1hide = "";
-                    }
 
-                      $myqry = "INSERT INTO `tapin_logs`(`id_no`) VALUES ('$imgname')";
-                      mysqli_query($con, $myqry);  
-                      echo "<script> window.open( 
-                            '', '_blank');                
-                  </script> ";
-
-                    }
-                else if(mysqli_num_rows($res) == null) //invalid user
-                { 
-                    // this are new entry and does not exist in database
                   $bordercolor = "#555555";
-                  $imgname = "placeholder";
+                  $imgname = "img/placeholder.jpg";
                   $notif_msg_header = "INVALID";
                   $notif_msg_details = "Please report to the Security Office";
                   $notif_msg_sender = "Welcome Guest";
                   $card1hide = "";
-                }          
-    }
-  }
-  else
-  {
-                  $bordercolor = "#555555";
-                  $imgname = "placeholder";
-                  $notif_msg_header = "INVALID";
-                  $notif_msg_details = "Please report to the Security Office";
-                  $notif_msg_sender = "Welcome Guest";
-                  $card1hide = "";
-  }
-  
+
   
 ?>
 
@@ -80,20 +24,32 @@ if(isset($_POST['submit_tapin']))
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
-    <!-- JQuery -->
-
     <link href="assets/vendor/bootstrap4/css/bootstrap.min.css" rel="stylesheet">
-    <link href="assets/vendor/DataTables/datatables.min.css" rel="stylesheet">
     <link href="assets/css/master.css" rel="stylesheet">
     <link href="css/mycss.css" rel="stylesheet">
+    <script src="jquery.min.js"></script>
     <script src="js/script_date_time.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+      <script src="js/bootstrap.min.js"></script>
+      <script src="jquery.min.js"></script>
+      
+      <script>
+        $(document).ready(function(){
+           $("#getUID").load("../../gatekeeperdevice/UIDContainer.php");
+          setInterval(function() {
+            $("#getUID").load("../../gatekeeperdevice/UIDContainer.php");  
+          }, 500);
+        });
+      </script>
 
-    <link rel="stylesheet" href="css/loading-bar.min.css">
-    <script src="css/loading-bar.min.js"></script>
-    
+  <?php
+  $bg = array('img-1.jpg', 'img-8.png', 'img-9.jpg', 'img-10.png'); // array of filenames
+
+  $i = rand(0, count($bg)-1); // generate random number size of the array
+  $selectedBg = "$bg[$i]"; // set variable equal to which random filename was chosen
+?>
+
     <style>
-
-
 
 body, html {
   height: 100%;
@@ -114,7 +70,7 @@ body, html {
 
 .bg {
   /* The image used */
-  background-image: url("img/img-1.jpg");
+  background-image: url("img/<?php echo $selectedBg; ?>");
 
   /* Full height */
   height: 100%;
@@ -189,13 +145,13 @@ border-color: #6C6A69;
   color: white;
 }
 
+</style>
 
-
-
-    </style>
+  
+    
 </head>
 <!-- -->
-<body onload="onLoad()">
+<body>
 <!-- -->
 <div class="bg"></div>
 <div class="bg-overlay"></div>
@@ -203,24 +159,75 @@ border-color: #6C6A69;
 <div class="myBar label-center" style="position: absolute; float: right; right: 10px; top: 10px; color: white;" data-value="0"></div>
         <div id="titlemcl" class="item-container" style="font-family: 'Noto Sans', sans-serif; color: white; border-style: none; margin-top: 5%;">
         <h1 style="text-align: center;margin: 0; padding: 0; font-size: 2.5rem;letter-spacing: 1px;"> MALAYAN COLLEGES LAGUNA</h1>
-        <h4 style="text-align: center;margin: 0; padding: 0; letter-spacing: 1px;"> Malayan Colleges Laguna</h4>
+        <h4 style="text-align: center;margin: 0; padding: 0; letter-spacing: 1px;" id="date_time"> </h4>
         </div>
 
-
+<p id="getUID" hidden></p>
 <div class="row"><div class="card-body"></div></div>
 <div class="row"><div class="card-body"></div></div>
 
 
-<div class="row">
+<div class="row" id="show_user_data">
   <div class="card-body">
     <div class="row">
       <div class="col-1"></div>
-        <div class="col-5" style="align-items: center;">
-          <div class="card" style="background: rgba(0, 0, 0, 0.4);">
-            <div class="card-header" style="border-color: white; color: cyan;">asdasd</div>
-            <div class="card-body">
-              <div class="slide-right" id="card1" style="height: 50vh; color: white;"></div>
+        <div class="col-5" style="align-items: center;" >
+          <div class="card" style="background: rgba(0, 0, 0, 0.4);" >
+            <div class="card-header" style="border-color: white; color: cyan;"><h3 style="font-family: 'Noto Sans', sans-serif; color: transparent;" align="right">asd</h3></div>
+            <div class="card-body slide-right">
+
+              <div class="row" style="height: 5vh; color: white;">
+              <div class="col-6" hidden>asd</div>
+              <div class="col-6"><h1 style="letter-spacing: 3px;" hidden>asd</h1></div>
             </div>
+
+
+    <div style="border-color: white; color: cyan;"><h3 style="font-family: 'Noto Sans', sans-serif; color: white;">
+      <form>
+              <table class="table table-borderless" style="width: 100% !important; color: white;">
+                  <thead>
+                  </thead>
+               <!-- <tr>
+                  <td align="left" class="lf">RFID</td>
+                  <td style="font-weight:bold" >:</td>
+                  <td align="left"><?php //echo '--------------';?></td>
+                </tr>
+                <tr >
+                  <td align="left" class="lf">MCL ID</td>
+                  <td style="font-weight:bold">:</td>
+                  <td align="left"><?php //echo '--------------';?></td>
+                </tr> -->
+                <tr>
+                  <td align="left" class="lf">Firstname</td>
+                  <td style="font-weight:bold">:</td>
+                   <td align="left"><?php echo '--------------';?></td>
+                </tr>
+                <tr>
+                  <td align="left" class="lf">Lastname</td>
+                  <td style="font-weight:bold">:</td>
+                  <td align="left"><?php echo '--------------';?></td>
+                </tr>
+                <tr >
+                  <td align="left" class="lf">Position</td>
+                  <td style="font-weight:bold">:</td>
+                   <td align="left"><?php echo '--------------';?></td>
+                </tr>
+              </table>        
+      </form>
+    </div>
+
+
+            <div class="row" style="height: 5vh; color: white;">
+              <div class="col-6" hidden>asd</div>
+              <div class="col-6" hidden><h1 style="letter-spacing: 3px;">asd</h1></div>
+            </div>
+
+
+            </div>
+
+             <div class="card-footer" style="font-family: 'Noto Sans', sans-serif; color: white; border-color: white; color: transparent" align="center"><h3>no msg</h3><h6>1234</h6>
+            </div>
+
           </div>
         </div>
         <div class="col-1"></div>
@@ -228,7 +235,7 @@ border-color: #6C6A69;
         <div class="col-4" style="align-items: center;">
           <div class="row"><div class="card-body"></div></div>
           <div class="row"><div class="card-body"></div></div>
-          <img class="slide-slow" id="img1" src="img/<?php echo $imgname;?>.jpg"  alt="Avatar" style="width: 375px; height: 375px; border: solid 8px <?php echo $bordercolor; ?>">
+          <img class="slide-slow" id="img1" src=<?php echo '"'.$imgname.'"'?>  alt="Avatar" style="width: 375px; height: 375px; border: solid 8px <?php echo $bordercolor; ?>">
         </div>
 
     </div>
@@ -237,31 +244,73 @@ border-color: #6C6A69;
  
 
 <!-- -->
+
 <script>
-  function onLoad(){
-  var bar = new ldBar(".myBar", {
-   "stroke": 'green',
-   "stroke-width": 3,
-   "preset": "circle",
-  });
+      var myVar = setInterval(myTimer, 1000);
+      var myVar1 = setInterval(myTimer1, 1000);
+      var oldID="";
+      clearInterval(myVar1);
 
-bar.set(
-  100,     /* target value. */
-  true   /* enable animation. default is true */
-);
-}
-</script>
+      function myTimer() {
+        var getID=document.getElementById("getUID").innerHTML;
+        oldID=getID;
+        if(getID!="") {
+          myVar1 = setInterval(myTimer1, 500);
+          showUser(getID);
+          clearInterval(myVar);
+        }
+      }
+      
+      function myTimer1() {
+        var getID=document.getElementById("getUID").innerHTML;
+        if(oldID!=getID) {
+          myVar = setInterval(myTimer, 500);
+          clearInterval(myVar1);
+        }
+      }
+      
+      function showUser(str) {
+        if (str == "") {
+          document.getElementById("show_user_data").innerHTML = "";
+          return;
+        } else {
+          if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+          } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+          xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+              document.getElementById("show_user_data").innerHTML = this.responseText;
+            }
+          };
+          xmlhttp.open("GET","tap-in-new-data.php?id="+str,true);
+          xmlhttp.send();
+          (function countdown(remaining) {
+              if(remaining === 0)
+                  location.reload(true);
+              //document.getElementById('countdown').innerHTML = remaining;
+              setTimeout(function(){ countdown(remaining - 1); }, 1000);
+          })(5);
+        }
+      }
+      
+      var blink = document.getElementById('blink');
+      setInterval(function() {
+        blink.style.opacity = (blink.style.opacity == 0 ? 1 : 0);
+      }, 750); 
+    </script>
 
-    <script src="assets/vendor/chartsjs/Chart.min.js"></script>
-    <script src="assets/js/dashboard-charts.js"></script>
     <script src="assets/vendor/jquery3/jquery.min.js"></script>
     <script src="assets/vendor/bootstrap4/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/fontawesome5/js/solid.min.js"></script>
     <script src="assets/vendor/fontawesome5/js/fontawesome.min.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="assets/js/initiate-datatables.js"></script>
-    <script src="assets/vendor/DataTables/datatables.min.js"></script>
     <script type="text/javascript">window.onload = date_time('date_time');</script>
+
+    
 
 </body>
 </html>
