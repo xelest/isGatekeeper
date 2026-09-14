@@ -9,6 +9,16 @@ services:
       - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ../migrations/v1.0.8-add-systemusers-department.sql:/docker-entrypoint-initdb.d/02-migration-department.sql:ro
       - ./sql/02-demo-seed.sql:/docker-entrypoint-initdb.d/03-demo-seed.sql:ro
+      # Shared with app below: the app's PHP code is hardcoded throughout to
+      # connect to MySQL on "localhost" (it was written for a single-server
+      # XAMPP deployment, not a split app/db container setup). Only the
+      # handful of files touched by the v1.0.8 patch were updated to use the
+      # "db" hostname; the rest still say "localhost". PHP's mysqli treats a
+      # host of "localhost" as "connect via local Unix socket file", which
+      # network access alone can't satisfy — each container has its own
+      # filesystem. Sharing this directory puts the real socket file at the
+      # exact path the app expects, so "localhost" connections work.
+      - mysql-socket:/var/run/mysqld
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -23,5 +33,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - mysql-socket:/var/run/mysqld
     ports:
       - "8088:80"
+
+volumes:
+  mysql-socket:
