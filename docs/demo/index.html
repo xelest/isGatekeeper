@@ -4,198 +4,199 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 <title>isGatekeeper — Live Demo</title>
+<!-- Load order matches the real app's login.html exactly: styles.css, then
+     Bootstrap, then DataTables, then master.css, then mycss.css last so its
+     overrides win the cascade. -->
+<link href="assets/css/styles.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+<link href="assets/css/master.css" rel="stylesheet">
+<link href="assets/css/mycss.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/shepherd.js@11/dist/css/shepherd.css" rel="stylesheet">
 <style>
-  :root{
-    --navy:#354664; --darkgray:#2F333D; --green:#5D8C7D; --red:#E57466;
-    --yellow:#E4B363; --blue-accent:#195387;
-  }
-  body{ background:#E2E2E2; color:#2F333D; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
-  #login-screen{
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(rgba(20,28,48,.55),rgba(20,28,48,.75)), url('assets/img/campus-1.jpg') center/cover no-repeat;
-  }
-  .login-card{ width:100%; max-width:400px; }
-  .login-card .card-header{ background:var(--navy); color:#fff; letter-spacing:3px; }
-  .login-card .card-body{ background:var(--navy); }
-  .login-card input{ background:#fff; border:0; }
-  .login-card .btn-light{ font-weight:600; }
+  /* Demo-only additions — never override the real theme's own classes above */
   #app-shell{ display:none; }
-  .sidenav{ background:var(--darkgray); min-height:100vh; width:225px; flex:0 0 225px; color:#ccc; }
-  .sidenav .heading{ text-transform:uppercase; font-size:11px; letter-spacing:1px; color:#8a8f98; padding:14px 16px 6px; }
-  .sidenav a.nav-link{ color:#dcdcdc; padding:10px 16px; display:flex; align-items:center; gap:10px; cursor:pointer; border-left:3px solid transparent; }
-  .sidenav a.nav-link:hover, .sidenav a.nav-link.active{ background:rgba(255,255,255,.06); border-left-color:var(--yellow); color:#fff; }
-  .topbar{ background:var(--navy); color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
-  .topbar .brand{ font-weight:600; letter-spacing:1px; }
-  .content-area{ flex:1; padding:24px; }
-  .stat-card{ background:#fff; border-radius:6px; padding:16px 20px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
-  .stat-card .label{ color:#8a8f98; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
-  .stat-card .value{ font-size:28px; font-weight:600; }
-  .panel{ background:#fff; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.08); padding:16px; margin-bottom:20px; }
-  .panel h4{ font-size:15px; font-weight:600; margin-bottom:14px; color:#354664; }
-  table.demo-table{ width:100%; font-size:13px; }
-  table.demo-table th{ text-align:left; color:#8a8f98; font-weight:600; font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:2px solid #eee; }
-  table.demo-table td{ padding:8px; border-bottom:1px solid #f0f0f0; }
-  .badge-active{ background:var(--green); color:#fff; }
-  .badge-closed{ background:#aaa; color:#fff; }
-  .badge-late{ color:var(--red); font-weight:600; }
-  .badge-ontime{ color:var(--green); font-weight:600; }
-  .emg-btn{ display:block; width:100%; text-align:center; padding:8px; border-radius:4px; color:#fff; font-size:12px; font-weight:600; margin-bottom:8px; }
   .view{ display:none; }
   .view.active{ display:block; }
-  #rfid-view .rfid-screen{
-    min-height:420px; border-radius:8px; position:relative; overflow:hidden;
-    background:linear-gradient(rgba(15,25,50,.55),rgba(15,25,50,.75)), url('assets/img/campus-2.jpg') center/cover no-repeat;
-    color:#fff; display:flex; align-items:center; padding:40px;
-  }
-  #rfid-view .rfid-panel{ background:rgba(20,28,48,.7); padding:20px 26px; border-radius:6px; max-width:360px; }
-  #rfid-view .rfid-panel img{ width:64px; height:64px; border-radius:50%; float:right; border:2px solid var(--green); }
-  #rfid-view .tap-status{ font-size:13px; letter-spacing:1px; margin-bottom:12px; }
-  #rfid-view .tap-status.in{ color:var(--green); }
-  #rfid-view .tap-status.out{ color:var(--red); }
   #start-tour-btn{ position:fixed; bottom:24px; right:24px; z-index:1000; box-shadow:0 4px 14px rgba(0,0,0,.25); }
-  .shepherd-has-title .shepherd-content .shepherd-header{ background:var(--navy); }
-  .shepherd-title{ color:#fff !important; }
-  .shepherd-text{ font-size:14px; }
-  .ai-badge{ display:inline-block; background:var(--blue-accent); color:#fff; font-size:10px; padding:2px 8px; border-radius:10px; letter-spacing:.5px; margin-bottom:6px; }
-
-  /* Reactive "AI guide" speech-bubble balloons — triggered by real clicks/typing */
+  .ai-badge{ display:inline-block; background:#195387; color:#fff; font-size:10px; padding:2px 8px; border-radius:10px; letter-spacing:.5px; margin-bottom:6px; }
   .ai-balloon{
-    position:absolute; z-index:2000; max-width:240px; background:#1f2a3d; color:#fff;
+    position:absolute; z-index:2000; max-width:250px; background:#2F333D; color:#fff;
     padding:10px 14px; border-radius:10px; font-size:13px; line-height:1.4;
     box-shadow:0 6px 18px rgba(0,0,0,.3); opacity:0; transform:translateY(6px) scale(.96);
     transition:opacity .18s ease, transform .18s ease; pointer-events:none;
   }
   .ai-balloon.show{ opacity:1; transform:translateY(0) scale(1); }
-  .ai-balloon .ai-badge{ margin-bottom:4px; }
-  .ai-balloon::after{
-    content:''; position:absolute; left:20px; top:-7px; border:7px solid transparent;
-    border-bottom-color:#1f2a3d;
-  }
-  .ai-balloon.arrow-bottom::after{ top:auto; bottom:-7px; border-bottom-color:transparent; border-top-color:#1f2a3d; }
+  .ai-balloon::after{ content:''; position:absolute; left:20px; top:-7px; border:7px solid transparent; border-bottom-color:#2F333D; }
+  .ai-balloon.arrow-bottom::after{ top:auto; bottom:-7px; border-bottom-color:transparent; border-top-color:#2F333D; }
+  .demo-badge{ position:fixed; top:60px; right:16px; z-index:1050; font-size:11px; background:#E3C369; color:#2F333D; padding:3px 10px; border-radius:10px; font-weight:600; }
+  #login-screen .demo-badge{ top:16px; }
+  .rfid-mini{ background:#0f1830; color:#fff; border-radius:8px; padding:20px; text-align:center; }
+  .rfid-mini img{ width:64px; height:64px; border-radius:50%; border:2px solid #72CB74; margin-bottom:10px; }
 </style>
 </head>
-<body>
+<body class="sb-nav-fixed">
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN SCREEN (mirrors login.html exactly) -->
 <div id="login-screen">
-  <div class="card login-card shadow-lg border-0">
-    <div class="card-header text-center py-3"><h3 class="mb-0" style="font-weight:300;">LOGIN</h3></div>
-    <div class="card-body p-4">
-      <div class="form-group">
-        <label class="small text-white-50 mb-1">Username</label>
-        <input class="form-control" id="demo-username" value="admin" />
-      </div>
-      <div class="form-group">
-        <label class="small text-white-50 mb-1">Password</label>
-        <input class="form-control" type="password" id="demo-password" value="admin" />
-      </div>
-      <button class="btn btn-light btn-block mt-3" id="demo-signin">Sign In</button>
-      <p class="text-center text-white-50 small mt-3 mb-0">Internal Systems | Gatekeeper — Demo Mode</p>
-    </div>
-  </div>
-</div>
-
-<!-- APP SHELL -->
-<div id="app-shell" class="d-flex">
-  <nav class="sidenav" id="sidenav">
-    <div class="topbar">
-      <span class="brand"><i class="fas fa-user-shield mr-2"></i>Gatekeeper</span>
-    </div>
-    <div class="heading">Navigation</div>
-    <a class="nav-link active" data-view="dashboard"><i class="fas fa-home"></i> Home</a>
-    <div class="heading">Featured Pages</div>
-    <a class="nav-link" data-view="users" id="nav-users"><i class="fas fa-users-cog"></i> Users</a>
-    <a class="nav-link" data-view="members" id="nav-members"><i class="fas fa-id-badge"></i> Members</a>
-    <a class="nav-link" data-view="taplogs" id="nav-taplogs"><i class="fas fa-clipboard-list"></i> All Tap Logs</a>
-    <a class="nav-link" data-view="reports" id="nav-reports"><i class="fas fa-chart-bar"></i> Reports</a>
-    <a class="nav-link" data-view="messaging" id="nav-messaging"><i class="fas fa-envelope"></i> Messaging</a>
-    <div class="heading">Page Simulation</div>
-    <a class="nav-link" data-view="rfid" id="nav-rfid"><i class="fas fa-wifi"></i> RFID Tap In</a>
-  </nav>
-
-  <div class="flex-fill">
-    <div class="topbar justify-content-end">
-      <span class="small mr-2">Logged in as:</span> <strong id="whoami">admin</strong>
-      <button class="btn btn-sm btn-outline-light ml-3" id="demo-logout">Log out</button>
-    </div>
-
-    <div class="content-area">
-
-      <!-- DASHBOARD -->
-      <div class="view active" id="view-dashboard">
-        <div class="row mb-3" id="dashboard-cards">
-          <div class="col-md-4 mb-3"><div class="stat-card"><div class="label">Live Population</div><div class="value">14</div></div></div>
-          <div class="col-md-4 mb-3"><div class="stat-card"><div class="label">Tap-Ins Today</div><div class="value">37</div></div></div>
-          <div class="col-md-4 mb-3"><div class="stat-card"><div class="label">Tap-Outs Today</div><div class="value">23</div></div></div>
-        </div>
-        <div class="row">
-          <div class="col-md-8">
-            <div class="panel" id="tap-traffic-panel">
-              <h4>Today's Tap-In Frequency</h4>
-              <div style="height:180px; display:flex; align-items:flex-end; gap:6px;">
-                <div style="flex:1;background:var(--navy);height:30%;"></div>
-                <div style="flex:1;background:var(--navy);height:55%;"></div>
-                <div style="flex:1;background:var(--navy);height:80%;"></div>
-                <div style="flex:1;background:var(--navy);height:65%;"></div>
-                <div style="flex:1;background:var(--navy);height:90%;"></div>
-                <div style="flex:1;background:var(--navy);height:40%;"></div>
-                <div style="flex:1;background:var(--navy);height:20%;"></div>
+  <span class="demo-badge">DEMO MODE</span>
+  <nav class="sb-topnav navbar navbar-expand mcl-darkgray"></nav>
+  <div id="layoutAuthentication_content">
+    <main>
+      <div class="container">
+        <div class="row justify-content-center mt-5">
+          <div class="col-md-4 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+              <div class="card-header mcl-blue">
+                <h3 class="text-center font-weight-light my-3" style="color:#fff;letter-spacing:5px;padding:0;">LOGIN</h3>
+              </div>
+              <div class="card-body mcl-blue">
+                <div class="form-group">
+                  <label class="small mb-1" style="font-size:14px;letter-spacing:1px;">Username</label>
+                  <input class="form-control py-4" id="demo-username" type="text" value="admin" />
+                </div>
+                <div class="form-group">
+                  <label class="small mb-1" style="font-size:14px;letter-spacing:1px;">Password</label>
+                  <input class="form-control py-4" id="demo-password" type="password" value="admin" />
+                </div>
+                <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
+                  <a class="small" href="#" onclick="return false;">Forgot Password?</a>
+                  <button type="button" id="demo-signin" class="btn btn-light w-50">Sign In</button>
+                </div>
+              </div>
+              <div class="card-footer text-center mcl-blue">
+                <div class="small">Internal Systems | Gatekeeper</div>
               </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="panel" id="emergency-panel">
-              <h4>Emergency Status</h4>
-              <span class="emg-btn" style="background:var(--red);">Emergency Fire — ACTIVE</span>
-              <span class="emg-btn" style="background:var(--yellow);color:#2F333D;">Emergency Earthquake — ON-DRILLS</span>
-              <span class="emg-btn" style="background:var(--green);">Emergency Typhoon — ACTIVATE</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- APP SHELL (mirrors gatekeeper.php + dashboard2.php exactly) -->
+<div id="app-shell">
+  <span class="demo-badge">DEMO MODE</span>
+  <nav class="sb-topnav navbar navbar-expand mcl-blue">
+    <span class="navbar-brand" style="color:#fff;"><i class="fas fa-user-shield mr-2"></i>Gatekeeper</span>
+    <button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle"><i class="fas fa-bars" style="color:#fff;"></i></button>
+    <ul class="navbar-nav ml-auto ml-md-0" style="color:#fff;">
+      <li class="nav-item">
+        <span class="small mr-2" style="color:#fff;">Logged in as: <strong id="whoami">admin</strong></span>
+        <button class="btn btn-sm btn-outline-light" id="demo-logout">Log out</button>
+      </li>
+    </ul>
+  </nav>
+  <div id="layoutSidenav">
+    <div id="layoutSidenav_nav">
+      <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+        <div class="sb-sidenav-menu mcl-darkgray">
+          <div class="nav" id="sidenav">
+            <div class="sb-sidenav-menu-heading">Navigation</div>
+            <a class="nav-link active" data-view="dashboard"><div class="sb-nav-link-icon"><i class="fas fa-home"></i></div> Home</a>
+            <div class="sb-sidenav-menu-heading">Featured Pages</div>
+            <a class="nav-link" data-view="users" id="nav-users"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Users</a>
+            <a class="nav-link" data-view="members" id="nav-members"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Members</a>
+            <a class="nav-link" data-view="taplogs" id="nav-taplogs"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> All Tap Logs</a>
+            <a class="nav-link" data-view="reports" id="nav-reports"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Reports</a>
+            <a class="nav-link" data-view="messaging" id="nav-messaging"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Messaging</a>
+            <div class="sb-sidenav-menu-heading">Page Simulation</div>
+            <a class="nav-link" data-view="rfid" id="nav-rfid"><div class="sb-nav-link-icon"><i class="fas fa-wifi"></i></div> RFID Tap In</a>
+          </div>
+        </div>
+        <div class="sb-sidenav-footer">
+          <div class="small">Logged in as:</div>
+          admin
+        </div>
+      </nav>
+    </div>
+
+    <div id="layoutSidenav_content">
+      <main>
+      <div class="container-fluid">
+
+        <!-- DASHBOARD -->
+        <div class="view active" id="view-dashboard">
+          <div class="page-title">
+            <div class="row"><div class="col-4"><h3>Dashboard</h3></div></div>
+          </div>
+          <div class="row">
+            <div class="col-lg-2 col-md-2 col-sm-12">
+              <div class="card"><div class="card-header">Live Population</div><div class="card-body"><h5 align="center">14</h5></div></div>
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-12">
+              <div class="card"><div class="card-header">Tap-Ins</div><div class="card-body"><h5 align="center">37</h5></div></div>
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-12">
+              <div class="card"><div class="card-header">Tap-Outs</div><div class="card-body"><h5 align="center">23</h5></div></div>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-5">
+              <div class="card">
+                <div class="content">
+                  <div class="head"><h4 class="mb-0">Tap Out Traffic</h4><p class="text-muted">Tap Out Frequency</p></div>
+                  <canvas id="chartTrafficOut" height="200"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="card">
+                <div class="content">
+                  <div class="head"><h4 class="mb-0">Tap In Traffic</h4><p class="text-muted">Today's Tap In Frequency</p></div>
+                  <canvas id="chartTrafficIn" height="200"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="card"><div class="card-header p-2">Emergency Fire</div><div class="card-body p-2"><button class="btn mcl-red btn-sm btn-block">ACTIVE</button></div></div>
+              <div class="card"><div class="card-header p-2">Emergency Earthquake</div><div class="card-body p-2"><button class="btn mcl-yellow btn-sm btn-block">ON-DRILLS</button></div></div>
+              <div class="card"><div class="card-header p-2">Emergency Typhoon</div><div class="card-body p-2"><button class="btn mcl-green btn-sm btn-block">ACTIVATE</button></div></div>
+              <div class="card"><div class="card-header p-2">Emergency Hi-jack</div><div class="card-body p-2"><button class="btn btn-primary btn-sm btn-block">IN-PROGRESS</button></div></div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- USERS -->
-      <div class="view" id="view-users">
-        <div class="panel">
-          <h4>Account Management</h4>
-          <table class="demo-table">
-            <thead><tr><th>User</th><th>Access Level</th><th>Department</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              <tr><td>admin</td><td>System Admin</td><td>Administrator</td><td><span class="badge badge-active">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
-              <tr><td>CCIS</td><td>System User</td><td>CCIS Faculty</td><td><span class="badge badge-active">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
-              <tr><td>Registrar</td><td>System User</td><td>Registrar Office</td><td><span class="badge badge-active">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
-            </tbody>
-          </table>
+        <!-- USERS -->
+        <div class="view" id="view-users">
+          <div class="page-title"><h3>Account Management</h3></div>
+          <div class="card"><div class="card-body">
+            <table class="table table-striped">
+              <thead><tr><th>User</th><th>Access Level</th><th>Department</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>admin</td><td>System Admin</td><td>Administrator</td><td><span class="badge mcl-green">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
+                <tr><td>CCIS</td><td>System User</td><td>CCIS Faculty</td><td><span class="badge mcl-green">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
+                <tr><td>Registrar</td><td>System User</td><td>Registrar Office</td><td><span class="badge mcl-green">A</span></td><td><button class="btn btn-sm btn-info">Edit</button></td></tr>
+              </tbody>
+            </table>
+          </div></div>
         </div>
-      </div>
 
-      <!-- MEMBERS -->
-      <div class="view" id="view-members">
-        <div class="panel">
-          <h4>Institution's Members List</h4>
-          <table class="demo-table">
-            <thead><tr><th>ID No</th><th>Firstname</th><th>Lastname</th><th>Position</th></tr></thead>
-            <tbody>
-              <tr><td>2000000007</td><td>Zoe</td><td>Cabrera</td><td>College</td></tr>
-              <tr><td>2000000008</td><td>Lanie</td><td>Delgado</td><td>Admin</td></tr>
-              <tr><td>2000000009</td><td>Faye</td><td>Fajardo</td><td>Teacher</td></tr>
-              <tr><td>2000000010</td><td>Bennett</td><td>Bacani</td><td>College</td></tr>
-              <tr><td>2000000018</td><td>Hazel</td><td>Tolentino</td><td>SHS</td></tr>
-            </tbody>
-          </table>
+        <!-- MEMBERS -->
+        <div class="view" id="view-members">
+          <div class="page-title"><h3>Institution's Members List</h3></div>
+          <div class="card"><div class="card-body">
+            <table class="table table-striped">
+              <thead><tr><th>ID No</th><th>Firstname</th><th>Lastname</th><th>Position</th></tr></thead>
+              <tbody>
+                <tr><td>2000000007</td><td>Zoe</td><td>Cabrera</td><td>College</td></tr>
+                <tr><td>2000000008</td><td>Lanie</td><td>Delgado</td><td>Admin</td></tr>
+                <tr><td>2000000009</td><td>Faye</td><td>Fajardo</td><td>Teacher</td></tr>
+                <tr><td>2000000010</td><td>Bennett</td><td>Bacani</td><td>College</td></tr>
+                <tr><td>2000000018</td><td>Hazel</td><td>Tolentino</td><td>SHS</td></tr>
+              </tbody>
+            </table>
+          </div></div>
         </div>
-      </div>
 
-      <!-- TAP LOGS -->
-      <div class="view" id="view-taplogs">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="panel">
-              <h4>Tap-In Logs</h4>
-              <table class="demo-table">
+        <!-- TAP LOGS -->
+        <div class="view" id="view-taplogs">
+          <div class="page-title"><h3>Logs</h3></div>
+          <div class="row">
+            <div class="col-md-6"><div class="card"><div class="card-header">Tap-In Logs</div><div class="card-body">
+              <table class="table table-striped">
                 <thead><tr><th>ID No</th><th>Tap In</th></tr></thead>
                 <tbody>
                   <tr><td>2000000025</td><td>07:09:16</td></tr>
@@ -203,12 +204,9 @@
                   <tr><td>2000000014</td><td>06:53:37</td></tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="panel">
-              <h4>Tap-Out Logs</h4>
-              <table class="demo-table">
+            </div></div></div>
+            <div class="col-md-6"><div class="card"><div class="card-header">Tap-Out Logs</div><div class="card-body">
+              <table class="table table-striped">
                 <thead><tr><th>ID No</th><th>Tap Out</th></tr></thead>
                 <tbody>
                   <tr><td>2000000025</td><td>16:41:07</td></tr>
@@ -216,59 +214,70 @@
                   <tr><td>2000000014</td><td>17:23:08</td></tr>
                 </tbody>
               </table>
+            </div></div></div>
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div class="view" id="view-reports">
+          <div class="page-title"><h3>Reports</h3></div>
+          <div class="card"><div class="card-body">
+            <div class="form-row mb-3">
+              <div class="col-auto"><input class="form-control form-control-sm" placeholder="Date Start"></div>
+              <div class="col-auto"><input class="form-control form-control-sm" placeholder="Date End"></div>
+              <div class="col-auto"><button class="btn btn-sm btn-primary">Generate</button></div>
+            </div>
+            <table class="table table-striped">
+              <thead><tr><th>Id No</th><th>Firstname</th><th>Lastname</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th><th>Remarks</th></tr></thead>
+              <tbody>
+                <tr><td>2000000025</td><td>Wesley</td><td>Lacson</td><td>2026-09-10</td><td>07:09</td><td>16:41</td><td>9h 32m</td><td style="color:#72CB74;font-weight:600;">ontime</td></tr>
+                <tr><td>2000000022</td><td>Nadine</td><td>Padilla</td><td>2026-09-10</td><td>07:13</td><td>16:44</td><td>9h 31m</td><td style="color:#E57466;font-weight:600;">late</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <!-- MESSAGING -->
+        <div class="view" id="view-messaging">
+          <div class="page-title"><h3>Messaging</h3></div>
+          <div class="card"><div class="card-body">
+            <table class="table table-striped">
+              <thead><tr><th>Msg ID</th><th>Message</th><th>Sender</th><th>Recipient</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Please report</td><td>CCIS Faculty</td><td>2000000022</td><td><span class="badge mcl-green">Active</span></td></tr>
+                <tr><td>2</td><td>Please get your results</td><td>Clinic</td><td>2000000019</td><td><span class="badge mcl-green">Active</span></td></tr>
+                <tr><td>3</td><td>Requirements Submission</td><td>Admission's Office</td><td>2000000025</td><td><span class="badge badge-secondary">Closed</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <!-- RFID -->
+        <div class="view" id="view-rfid">
+          <div class="page-title"><h3>RFID Tap-In Simulator</h3></div>
+          <div class="row justify-content-center">
+            <div class="col-md-5">
+              <div class="rfid-mini">
+                <div id="rfid-status" style="color:#72CB74;letter-spacing:1px;margin-bottom:10px;">Tapped In: 07:09:16</div>
+                <img src="assets/img/placeholder.jpg" alt="">
+                <div>Firstname: <strong id="rfid-fname">Zoe</strong></div>
+                <div>Lastname: <strong id="rfid-lname">Cabrera</strong></div>
+                <div>Position: <strong id="rfid-pos">College</strong></div>
+                <button class="btn btn-sm mcl-blue mt-3" style="color:#fff;" id="rfid-simulate">Simulate RFID Tap</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- REPORTS -->
-      <div class="view" id="view-reports">
-        <div class="panel">
-          <h4>Report Generation</h4>
-          <div class="form-row mb-3">
-            <div class="col-auto"><input class="form-control form-control-sm" placeholder="Date Start"></div>
-            <div class="col-auto"><input class="form-control form-control-sm" placeholder="Date End"></div>
-            <div class="col-auto"><button class="btn btn-sm btn-primary">Generate</button></div>
-          </div>
-          <table class="demo-table">
-            <thead><tr><th>Id No</th><th>Firstname</th><th>Lastname</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th><th>Remarks</th></tr></thead>
-            <tbody>
-              <tr><td>2000000025</td><td>Wesley</td><td>Lacson</td><td>2026-09-10</td><td>07:09</td><td>16:41</td><td>9h 32m</td><td class="badge-ontime">ontime</td></tr>
-              <tr><td>2000000022</td><td>Nadine</td><td>Padilla</td><td>2026-09-10</td><td>07:13</td><td>16:44</td><td>9h 31m</td><td class="badge-late">late</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
-
-      <!-- MESSAGING -->
-      <div class="view" id="view-messaging">
-        <div class="panel">
-          <h4>Messaging</h4>
-          <table class="demo-table">
-            <thead><tr><th>Msg ID</th><th>Message</th><th>Sender</th><th>Recipient</th><th>Status</th></tr></thead>
-            <tbody>
-              <tr><td>1</td><td>Please report</td><td>CCIS Faculty</td><td>2000000022</td><td><span class="badge badge-active">Active</span></td></tr>
-              <tr><td>2</td><td>Please get your results</td><td>Clinic</td><td>2000000019</td><td><span class="badge badge-active">Active</span></td></tr>
-              <tr><td>3</td><td>Requirements Submission</td><td>Admission's Office</td><td>2000000025</td><td><span class="badge badge-closed">Closed</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- RFID -->
-      <div class="view" id="view-rfid">
-        <div class="rfid-screen">
-          <div class="rfid-panel">
-            <div class="tap-status in" id="rfid-status">Tapped In: 07:09:16</div>
-            <img src="assets/img/placeholder.jpg" alt="">
-            <div>Firstname: <strong id="rfid-fname">Zoe</strong></div>
-            <div>Lastname: <strong id="rfid-lname">Cabrera</strong></div>
-            <div>Position: <strong id="rfid-pos">College</strong></div>
-            <button class="btn btn-sm btn-light mt-3" id="rfid-simulate">Simulate RFID Tap</button>
+      </main>
+      <footer class="py-4 bg-light mt-auto">
+        <div class="container-fluid">
+          <div class="d-flex align-items-center justify-content-between small">
+            <div class="text-muted">Copyright &copy; isGatekeeper | Internal Systems 2020</div>
           </div>
         </div>
-      </div>
-
+      </footer>
     </div>
   </div>
 </div>
@@ -277,47 +286,59 @@
 <div id="ai-balloon" class="ai-balloon"><span class="ai-badge"><i class="fas fa-robot"></i> AI Guide</span><br><span id="ai-balloon-text"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shepherd.js@11/dist/js/shepherd.min.js"></script>
 <script>
-  const demoNames = [
-    ['Zoe','Cabrera','College'], ['Lanie','Delgado','Admin'], ['Faye','Fajardo','Teacher'],
-    ['Bennett','Bacani','College'], ['Hazel','Tolentino','SHS'], ['Rico','Ibarra','College']
-  ];
+  // ---- Real Chart.js rendering, matching the app's own line/bar dashboard charts ----
+  const hourLabels = ['7AM','8AM','9AM','10AM','11AM','12NN','1PM','2PM','3PM','4PM','5PM','6PM','7PM'];
+  new Chart(document.getElementById('chartTrafficOut'), {
+    type: 'line',
+    data: { labels: hourLabels, datasets: [{ backgroundColor: 'rgba(48,164,255,0.5)', borderColor: 'rgba(48,164,255,0.8)', data: [1,3,5,4,7,6,8,5,4,3,2,1,0], fill: true }] },
+    options: { legend: { display:false }, scales: { yAxes: [{ scaleLabel: { display:true, labelString:'Traffic' } }], xAxes: [{ scaleLabel: { display:true, labelString:'Timeline' } }] } }
+  });
+  new Chart(document.getElementById('chartTrafficIn'), {
+    type: 'bar',
+    data: { labels: hourLabels, datasets: [{ label:'Tap Ins', backgroundColor: 'rgba(76,175,80,0.5)', borderColor: '#6da252', borderWidth: 1, data: [2,6,9,7,10,8,6,5,4,3,2,1,0] }] },
+    options: { legend: { display:false }, scales: { yAxes: [{ scaleLabel: { display:true, labelString:'Traffic' } }], xAxes: [{ scaleLabel: { display:true, labelString:'Timeline' } }] } }
+  });
 
   function showView(name){
     $('.view').removeClass('active');
     $('#view-' + name).addClass('active');
-    $('.sidenav .nav-link').removeClass('active');
-    $('.sidenav .nav-link[data-view="' + name + '"]').addClass('active');
+    $('.sb-sidenav-menu .nav-link').removeClass('active');
+    $('.sb-sidenav-menu .nav-link[data-view="' + name + '"]').addClass('active');
   }
-  $('.sidenav .nav-link').on('click', function(){ showView($(this).data('view')); });
+  $('#sidenav .nav-link').on('click', function(){ showView($(this).data('view')); });
 
   $('#demo-signin').on('click', function(){
     $('#whoami').text($('#demo-username').val() || 'admin');
     $('#login-screen').fadeOut(200, function(){
-      $('#app-shell').css('display','flex').hide().fadeIn(200);
+      $('#app-shell').css('display','block').hide().fadeIn(200);
     });
   });
   $('#demo-logout').on('click', function(){
     $('#app-shell').fadeOut(200, function(){
       $(this).css('display','none');
-      $('#login-screen').fadeIn(200);
+      $('#login-screen').css('display','block');
     });
   });
 
+  const demoNames = [
+    ['Zoe','Cabrera','College'], ['Lanie','Delgado','Admin'], ['Faye','Fajardo','Teacher'],
+    ['Bennett','Bacani','College'], ['Hazel','Tolentino','SHS'], ['Rico','Ibarra','College']
+  ];
   $('#rfid-simulate').on('click', function(){
     const pick = demoNames[Math.floor(Math.random()*demoNames.length)];
     const isIn = Math.random() > 0.5;
     $('#rfid-fname').text(pick[0]);
     $('#rfid-lname').text(pick[1]);
     $('#rfid-pos').text(pick[2]);
-    const t = new Date().toLocaleTimeString();
-    $('#rfid-status')
-      .text((isIn ? 'Tapped In: ' : 'Tapped Out: ') + t)
-      .attr('class', 'tap-status ' + (isIn ? 'in' : 'out'));
+    $('#rfid-status').text((isIn ? 'Tapped In: ' : 'Tapped Out: ') + new Date().toLocaleTimeString())
+      .css('color', isIn ? '#72CB74' : '#E57466');
   });
 
-  // ---- Reactive AI balloons: pop up when the visitor actually types or clicks ----
+  // ---- Reactive AI balloons ----
   let balloonTimer = null;
   let tourActive = false;
   function showBalloon(targetEl, text, opts){
@@ -328,57 +349,41 @@
     const $b = $('#ai-balloon');
     clearTimeout(balloonTimer);
     $('#ai-balloon-text').text(text);
-
     const rect = $target[0].getBoundingClientRect();
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-    const placeAbove = !!opts.above;
-
     $b.removeClass('arrow-bottom');
     let top, left = rect.left + scrollLeft;
-    if (placeAbove){
-      top = rect.top + scrollTop - $b.outerHeight() - 14;
-      $b.addClass('arrow-bottom');
-    } else {
-      top = rect.bottom + scrollTop + 10;
-    }
+    if (opts.above){ top = rect.top + scrollTop - $b.outerHeight() - 14; $b.addClass('arrow-bottom'); }
+    else { top = rect.bottom + scrollTop + 10; }
     left = Math.min(left, window.innerWidth - 260);
     left = Math.max(left, 10);
-
     $b.css({ top: top + 'px', left: left + 'px' }).addClass('show');
     balloonTimer = setTimeout(() => $b.removeClass('show'), opts.duration || 4200);
   }
 
-  // Login form: balloons on focus/typing, not on a timer
-  $('#demo-username').on('focus', function(){
-    showBalloon(this, "Default demo login is already filled in — admin / admin. Just hit Sign In.", { duration: 4500 });
-  });
-  $('#demo-password').on('focus', function(){
-    showBalloon(this, "Password's pre-filled too. This is a demo — nothing's actually checked server-side.", { duration: 4500 });
-  });
+  $('#demo-username').on('focus', function(){ showBalloon(this, "Default demo login is already filled in — admin / admin. Just hit Sign In.", { duration: 4500 }); });
+  $('#demo-password').on('focus', function(){ showBalloon(this, "Password's pre-filled too. This is a demo — nothing's checked server-side.", { duration: 4500 }); });
 
-  // First click on each nav section shows a contextual balloon (once per visit)
   const seenViews = new Set();
   const viewTips = {
-    users: "This is Account Management — enable/disable accounts and set access levels.",
+    users: "Account Management — enable/disable accounts, set access levels.",
     members: "The full member directory — students, teachers, admins.",
     taplogs: "Every RFID tap, logged here in real time.",
     reports: "Filter by date or ID and generate an attendance report.",
     messaging: "Leave a note for a specific ID — it shows up when they tap in.",
-    rfid: "This simulates the physical RFID reader screen at the gate. Try the button!"
+    rfid: "This simulates the physical RFID reader screen. Try the button!"
   };
-  $('.sidenav .nav-link[data-view]').on('click', function(){
+  $('#sidenav .nav-link[data-view]').on('click', function(){
     const view = $(this).data('view');
     if (view && viewTips[view] && !seenViews.has(view)){
       seenViews.add(view);
       showBalloon(this, viewTips[view], { duration: 4800 });
     }
   });
-
   $('#demo-signin').on('click', function(){
     setTimeout(() => showBalloon('#sidenav', "You're in! Click through the sidebar, or hit “Start Guided Demo” for the full walkthrough.", { duration: 5500 }), 350);
   });
-
   $('#rfid-simulate').on('click', function(){
     setTimeout(() => showBalloon(this, "Tap logged! In the real system this fires the moment an RFID card hits the reader.", { duration: 4200, above: true }), 150);
   });
@@ -387,117 +392,23 @@
   function buildTour(){
     const tour = new Shepherd.Tour({
       useModalOverlay: true,
-      defaultStepOptions: {
-        classes: 'shepherd-theme-arrows',
-        scrollTo: { behavior: 'smooth', block: 'center' },
-        cancelIcon: { enabled: true }
-      }
+      defaultStepOptions: { classes: 'shepherd-theme-arrows', scrollTo: { behavior: 'smooth', block: 'center' }, cancelIcon: { enabled: true } }
     });
-
     function aiStep(opts){
-      const text = '<span class="ai-badge"><i class="fas fa-robot"></i> AI Guide</span><br>' + opts.text;
-      tour.addStep(Object.assign({}, opts, { text }));
+      tour.addStep(Object.assign({}, opts, { text: '<span class="ai-badge"><i class="fas fa-robot"></i> AI Guide</span><br>' + opts.text }));
     }
-
-    aiStep({
-      id: 'intro',
-      title: "Hi, I'm your guide 👋",
-      text: "Welcome to isGatekeeper — a tap-in/tap-out attendance system built with RFID hardware and a web dashboard. I'll walk you through it in about a minute. Let's go!",
-      buttons: [{ text: 'Start', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'sidenav',
-      title: 'Navigation',
-      text: "Everything lives in this sidebar — Users, Members, Tap Logs, Reports, Messaging, and the RFID device simulator. Click any item any time, or just follow along.",
-      attachTo: { element: '#sidenav', on: 'right' },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'dashboard',
-      title: 'Live Dashboard',
-      text: "This is the Home screen — live population plus today's tap-in/out counts. Staff can see who's on campus at a glance.",
-      attachTo: { element: '#dashboard-cards', on: 'bottom' },
-      beforeShowPromise: () => { showView('dashboard'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'emergency',
-      title: 'Emergency panel',
-      text: "There's also a live emergency-status panel — fire, earthquake, typhoon drills — visible right on the dashboard for quick campus-wide awareness.",
-      attachTo: { element: '#emergency-panel', on: 'left' },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'users',
-      title: 'Account Management',
-      text: "Admins manage System Admin and System User accounts here — enable, disable, or edit access, all role-based.",
-      attachTo: { element: '#nav-users', on: 'right' },
-      beforeShowPromise: () => { showView('users'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'members',
-      title: 'Institution Members',
-      text: "Every student, teacher, and admin enrolled in the system shows up here — searchable and sortable.",
-      attachTo: { element: '#nav-members', on: 'right' },
-      beforeShowPromise: () => { showView('members'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'taplogs',
-      title: 'Tap Logs',
-      text: "Every RFID tap gets logged here in real time — separate tables for tap-ins and tap-outs.",
-      attachTo: { element: '#nav-taplogs', on: 'right' },
-      beforeShowPromise: () => { showView('taplogs'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'reports',
-      title: 'Reports',
-      text: "Filter by date range or individual ID to generate attendance reports — flagging late arrivals automatically — then export or print to PDF.",
-      attachTo: { element: '#nav-reports', on: 'right' },
-      beforeShowPromise: () => { showView('reports'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'messaging',
-      title: 'Messaging',
-      text: "Staff can leave a message for a specific ID number — it'll show up right on the tap-in/tap-out screen when that person badges in.",
-      attachTo: { element: '#nav-messaging', on: 'right' },
-      beforeShowPromise: () => { showView('messaging'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'rfid',
-      title: 'RFID Tap-In Simulator',
-      text: "And here's the fun part — this simulates what the physical RFID reader screen shows at the gate. Try the button below!",
-      attachTo: { element: '#rfid-simulate', on: 'top' },
-      beforeShowPromise: () => { showView('rfid'); return Promise.resolve(); },
-      buttons: [{ text: 'Back', action: tour.back }, { text: 'Next', action: tour.next }]
-    });
-
-    aiStep({
-      id: 'outro',
-      title: "That's the tour! 🎉",
-      text: "You've seen the core flow — tap in, get logged, get managed, get reported on. Explore freely from here, or check out the source and full changelog on GitHub.",
-      buttons: [
-        { text: 'Restart tour', action: () => { tour.cancel(); buildTour(); } },
-        { text: 'Done', action: tour.complete }
-      ]
-    });
-
+    aiStep({ id:'intro', title:"Hi, I'm your guide 👋", text:"Welcome to isGatekeeper — a tap-in/tap-out attendance system built with RFID hardware and a web dashboard. I'll walk you through it in about a minute.", buttons:[{ text:'Start', action:tour.next }] });
+    aiStep({ id:'sidenav', title:'Navigation', text:"Everything lives in this sidebar. Click any item any time, or just follow along.", attachTo:{ element:'#sidenav', on:'right' }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'dashboard', title:'Live Dashboard', text:"Live population plus today's tap-in/out counts and real-time traffic charts.", attachTo:{ element:'#view-dashboard .row', on:'bottom' }, beforeShowPromise:()=>{ showView('dashboard'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'users', title:'Account Management', text:"Admins manage System Admin and System User accounts here.", attachTo:{ element:'#nav-users', on:'right' }, beforeShowPromise:()=>{ showView('users'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'members', title:'Institution Members', text:"Every enrolled student, teacher, and admin — searchable and sortable.", attachTo:{ element:'#nav-members', on:'right' }, beforeShowPromise:()=>{ showView('members'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'taplogs', title:'Tap Logs', text:"Every RFID tap gets logged here in real time.", attachTo:{ element:'#nav-taplogs', on:'right' }, beforeShowPromise:()=>{ showView('taplogs'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'reports', title:'Reports', text:"Filter by date range or ID, flag late arrivals, then export or print.", attachTo:{ element:'#nav-reports', on:'right' }, beforeShowPromise:()=>{ showView('reports'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'messaging', title:'Messaging', text:"Leave a message for an ID — it shows on the tap-in screen when they badge in.", attachTo:{ element:'#nav-messaging', on:'right' }, beforeShowPromise:()=>{ showView('messaging'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'rfid', title:'RFID Tap-In Simulator', text:"This simulates what the physical RFID reader screen shows at the gate. Try the button!", attachTo:{ element:'#rfid-simulate', on:'top' }, beforeShowPromise:()=>{ showView('rfid'); return Promise.resolve(); }, buttons:[{ text:'Back', action:tour.back },{ text:'Next', action:tour.next }] });
+    aiStep({ id:'outro', title:"That's the tour! 🎉", text:"Explore freely from here, or check the source and full changelog on GitHub.", buttons:[{ text:'Restart tour', action:()=>{ tour.cancel(); buildTour(); } },{ text:'Done', action:tour.complete }] });
     return tour;
   }
-
   $('#start-tour-btn').on('click', function(){
     if ($('#app-shell').css('display') === 'none') { $('#demo-signin').click(); }
     tourActive = true;
