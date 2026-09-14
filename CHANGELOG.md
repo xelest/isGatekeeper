@@ -52,6 +52,17 @@ others) was broken. No application code changes; Docker packaging only.
   at `/CCIS GateKeeper/dist/` with `/gatekeeperdevice/` as an actual sibling,
   matching production. `docker/root-index.php` redirects the bare `/` to the
   login page for convenience.
+
+### Added
+- `docker/sql/04-spread-dates-recent.sql` — the shipped DEMO SQL dump's tap
+  logs, attendance records, and messages are all dated January 2020/2021, so
+  the dashboard's live counters and "today" queries always showed zero and
+  the app looked dead. This spreads every row's date randomly across a
+  ~2.5-month recent window ending today (matching a July–September pattern
+  relative to whenever the seed runs), preserving each row's original
+  time-of-day and all id_no/rf_id relationships. Docker demo seed only —
+  doesn't touch the canonical DEMO SQL dump.
+
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application

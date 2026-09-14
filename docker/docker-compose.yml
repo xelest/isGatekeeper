@@ -9,6 +9,7 @@ services:
       - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ../migrations/v1.0.8-add-systemusers-department.sql:/docker-entrypoint-initdb.d/02-migration-department.sql:ro
       - ./sql/02-demo-seed.sql:/docker-entrypoint-initdb.d/03-demo-seed.sql:ro
+      - ./sql/04-spread-dates-recent.sql:/docker-entrypoint-initdb.d/04-spread-dates-recent.sql:ro
       # Shared with app below: the app's PHP code is hardcoded throughout to
       # connect to MySQL on "localhost" (it was written for a single-server
       # XAMPP deployment, not a split app/db container setup). Only the

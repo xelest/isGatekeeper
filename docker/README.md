@@ -48,6 +48,10 @@ Init order (`docker-entrypoint-initdb.d`, alphabetical):
 1. `sql/01-schema.sql` — full schema + sanitized demo data (`mclccisn_gatekeeper DEMO.sql`)
 2. `../migrations/v1.0.8-add-systemusers-department.sql` — the v1.0.8 schema fix (canonical source, not duplicated here)
 3. `sql/02-demo-seed.sql` — Docker-demo-only: seeds the `CCIS` System User account
+4. `sql/04-spread-dates-recent.sql` — Docker-demo-only: spreads the shipped
+   dump's January 2020/2021 tap logs, attendance, and messages randomly
+   across a recent ~2.5-month window ending today, so the dashboard's live
+   counters and "today" queries actually show data
 
 ## Stop
 
