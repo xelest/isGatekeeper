@@ -3,6 +3,18 @@
 All notable changes to isGatekeeper are documented here.
 Versioning follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
+## [1.1.8] - 2026-09-15
+
+MINOR release. Adds a reusable Docker Compose deployment — no application
+code changes.
+
+### Added
+- `docker/` — Docker Compose deployment (`php:7.4-apache` + `mysql:5.7`) for
+  running the app locally. Seeds the sanitized DEMO SQL dump, applies the
+  v1.0.8 `migrations/` fix, and adds a Docker-only demo `CCIS` System User
+  account so both roles are reachable without manual DB edits. See
+  `docker/README.md` for usage.
+
 ## [1.0.8] - 2026-09-15
 
 Patch release. All changes are backward-compatible bug fixes plus additive
