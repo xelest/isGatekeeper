@@ -1,7 +1,7 @@
 <?php 
-  //$con = mysqli_connect('localhost', 'root', '', 'soilanalysisdb');
+  //$con = mysqli_connect('db', 'root', '', 'soilanalysisdb');
   //online
-  $con = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+  $con = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
 
   //on page load
   $fname = "";
@@ -14,12 +14,12 @@
 
 
  if (isset($_POST['register'])) {
- 	$uname = $_POST['uname'];
+ 	$uname = mysqli_real_escape_string($con, $_POST['uname']);
     $pwd1 = $_POST['pword'];
     $pwd2 = $_POST['pword2'];
-    $dept = $_POST['department'];
+    $dept = mysqli_real_escape_string($con, $_POST['department']);
     $pwdN = passAjinomoto($pwd1);
-    $urole = $_POST['urole'];
+    $urole = mysqli_real_escape_string($con, $_POST['urole']);
     $status = "A";
 
       $sql_u = "SELECT * FROM systemusers WHERE uname='$uname'";
@@ -47,8 +47,12 @@
                     VALUES ('".$uname."','".$pwdN."', 'A', '".$urole."','".$dept."')";
                     
            $results = mysqli_query($con, $query);
-           echo "<script type='text/javascript'>alert('Record created. Success!');</script>";
-           
+           if ($results) {
+             echo "<script type='text/javascript'>alert('Record created. Success!');</script>";
+           } else {
+             echo "<script type='text/javascript'>alert('Registration failed. Please try again.');</script>";
+           }
+
            exit();
         }
         else
@@ -59,7 +63,7 @@
   }
 
   function passAjinomoto($keypass){
-      $dbcon = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+      $dbcon = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
       $p2 = $keypass;
       $p1 = md5($p2);
       $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;"); // 1st layer md5

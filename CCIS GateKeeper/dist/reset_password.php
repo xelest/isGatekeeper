@@ -80,7 +80,7 @@
 </html>
 
 <?php 
-  $con = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+  $con = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
   
   //on page load
   $username = "";
@@ -98,16 +98,17 @@
       $sql_u = "SELECT * FROM systemusers WHERE `uname`='$uname'";
       $res_u = mysqli_query($con, $sql_u);
     
-      if (mysqli_num_rows($res_u) > 0) 
+      if (mysqli_num_rows($res_u) > 0)
       {
-          $query = "UPDATE `systemusers` SET `password`='$pwdN',`status`='$status' WHERE `uname`='$uname'";
-                    
+          $query = "UPDATE `systemusers` SET `pword`='$pwdN',`status`='$status' WHERE `uname`='$uname'";
+
            $results = mysqli_query($con, $query);
-           //echo 'Saved!';
-           echo "<script type='text/javascript'>alert('Password Reset Success!');</script>";
+           if ($results) {
+             echo "<script type='text/javascript'>alert('Password Reset Success!');</script>";
+           } else {
+             echo "<script type='text/javascript'>alert('Password reset failed. Please try again.');</script>";
+           }
            exit();
-          header('location: login.html');
-       
       }
       else
       {
@@ -123,7 +124,7 @@
   }
 
   function passAjinomoto($keypass){
-      $dbcon = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+      $dbcon = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
       $p2 = $keypass;
       $p1 = md5($p2);
       $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;");
