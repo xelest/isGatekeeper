@@ -53,7 +53,7 @@
                                                         <label class="small mb-1" for="urole">Account Role</label>
                                                         <select name="urole" class="form-control" required="" id="urole">
                                                             <option value="" selected="">Choose...</option>
-                                                            <option value="System Administrator">System Administrator</option>
+                                                            <option value="System Admin">System Admin</option>
                                                             <option value="System User">System User</option>
                                                         </select>
                                                     </div>
@@ -126,9 +126,9 @@
 
 
 <?php 
-  //$con = mysqli_connect('localhost', 'root', '', 'soilanalysisdb');
+  //$con = mysqli_connect('db', 'root', '', 'soilanalysisdb');
   //online
-  $con = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+  $con = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
 
   //on page load
   $fname = "";
@@ -194,7 +194,7 @@
   }
 
   function passAjinomoto($keypass){
-      $dbcon = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+      $dbcon = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
       $p2 = $keypass;
       $p1 = md5($p2);
       $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;"); // 1st layer md5

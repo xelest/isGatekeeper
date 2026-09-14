@@ -1,5 +1,5 @@
 <?php 
-  $con = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+  $con = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
   
   $username = "";
   $pwd1 = "";
@@ -31,23 +31,24 @@
                 //check if existing account is active or not
                 if($status === 'A'||$status === 'Active')
                 {
+                    $roleNormalized = strtolower(str_replace(' ', '', $role));
 
-                    if ($role === 'System Admin')
+                    if ($roleNormalized === 'systemadmin')
                     {
                       session_cache_expire(10);
                       session_start();
-                      $_SESSION["urole"] = $role;
+                      $_SESSION["urole"] = 'System Admin';
                       $_SESSION["uname"] = $username;
                       $_SESSION["status"] = $status;
                       header("Location: gatekeeper.php");
-          
+
                     }
 
-                    else if ($role === 'System User')
+                    else if ($roleNormalized === 'systemuser')
                     {
                       session_cache_expire(10);
                       session_start();
-                      $_SESSION["urole"] = $role;
+                      $_SESSION["urole"] = 'System User';
                       $_SESSION["uname"] = $username;
                       $_SESSION["status"] = $status;
                       header("Location: systemusers.php");
@@ -85,7 +86,7 @@
   }
 
   function passAjinomoto($keypass){
-      $dbcon = mysqli_connect('localhost', 'root', '', 'mclccisn_gatekeeper');
+      $dbcon = mysqli_connect('db', 'root', '', 'mclccisn_gatekeeper');
       $p2 = $keypass;
       $p1 = md5($p2);
       $getQRY = mysqli_query($dbcon, "SELECT PASSWORD('$p1') as PWORD;");
