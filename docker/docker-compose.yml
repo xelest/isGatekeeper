@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: mclccisn_gatekeeper
+    volumes:
+      - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ../migrations/v1.0.8-add-systemusers-department.sql:/docker-entrypoint-initdb.d/02-migration-department.sql:ro
+      - ./sql/02-demo-seed.sql:/docker-entrypoint-initdb.d/03-demo-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8088:80"
