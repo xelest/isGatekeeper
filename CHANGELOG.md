@@ -114,6 +114,25 @@ Patch release. Sidebar cleanup, no functional changes.
   between them in this build. The underlying page files are untouched;
   only the sidebar entries were removed. "Admin Tap Logs" and "Admin
   Reports" remain.
+## [1.3.11] - 2026-09-15
+
+Patch release. Sidebar UX tweak plus a bug fix in the same area.
+
+### Changed
+- **Renamed "RFID Tap In"/"RFID Tap Out" to "View Monitor Tap In"/"View
+  Monitor Tap Out"** in the System Admin sidebar (`gatekeeper.php`), and
+  split them into their own "Live Monitor" section, separate from the
+  "Tap In"/"Tap Out" simulation-modal triggers above them.
+
+### Fixed
+- **`pageredirect.php` threw `Warning: session_start(): Cannot start
+  session when headers already sent`, plus a knock-on `session_destroy():
+  Trying to destroy uninitialized session`** — same root cause as the
+  `reports_admin.php` fix in v1.3.9: `session_start()`/`session_destroy()`
+  were called from the bottom of the file, after the full HTML page (the
+  "Redirecting... Session Security" countdown screen) had already been
+  output. Fixed by moving both calls to the top of the file, before any
+  output.
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application
