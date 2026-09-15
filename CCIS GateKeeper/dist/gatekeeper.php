@@ -155,6 +155,7 @@
                                    <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#tapout"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Tap Out</a>
                                    <a class="nav-link" href="../../gatekeeperdevice/tap-in-new.php" target="_blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> RFID Tap In</a>
                                    <a class="nav-link" href="../../gatekeeperdevice/tap-out-new.php" target="blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> RFID Tap Out</a>
+                                   <a class="nav-link" href="demo_generator.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-magic"></i></div> Demo Data Generator</a>
 
                                    <!-- <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#rstpwd" ><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Quick Password Reset</a>
                                    <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#regnew" ><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Register New User</a>
