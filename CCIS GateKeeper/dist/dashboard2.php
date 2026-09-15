@@ -66,6 +66,15 @@
                     </div>
 
                     <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">Currently Inside Campus</div>
+                                <div class="card-body" id="currentlyinside"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-5">
                             <div class="card id="chartright">
                                 <div class="content">
@@ -555,6 +564,10 @@ AND HOUR(`inDate`) <= HOUR('19:59:00')";
                 });
 
                  $('#livepop').load('livepop.php',function () {
+                     //$(this).unwrap();
+                });
+
+                 $('#currentlyinside').load('currently_inside.php',function () {
                      //$(this).unwrap();
                 });
 
