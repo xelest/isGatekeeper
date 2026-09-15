@@ -1,3 +1,11 @@
+<?php
+    // session_start()/session_destroy() must run before any output — moved
+    // here from the bottom of the file, where HTML markup had already been
+    // sent, causing "Cannot start session when headers already sent" and,
+    // as a knock-on effect, "Trying to destroy uninitialized session".
+    session_start();
+    session_destroy();
+?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -65,9 +73,6 @@
                                         countdown();
 
                                     </script>
-                                    <?php 
-                                    session_start();
-                                    session_destroy(); ?>
                             </div>
                         </div>
                     </div>
