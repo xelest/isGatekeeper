@@ -21,12 +21,20 @@
     // same-day tap-in/tap-out pairing intact (duration calculations need
     // both halves of a visit on the same day), which independent random
     // redistribution per table breaks.
-    $targetDaysBack = isset($_POST['window_days']) ? (int)$_POST['window_days'] : 1;
+    //
+    // Anchored on tapin_logs' own max, not calendar's: calendar's native
+    // range extends ~2 weeks further than tapin_logs'/tapout_logs' in the
+    // shipped demo data, so anchoring on calendar always left tap logs
+    // trailing behind "today" by that same gap. Dashboard's live counters
+    // read tap logs directly by CURDATE(), so tap logs (not calendar) are
+    // what need to reach "today" for the demo to look alive. Calendar ends
+    // up shifted slightly into the future, which is harmless.
+    $targetDaysBack = isset($_POST['window_days']) ? (int)$_POST['window_days'] : 0;
     if ($targetDaysBack < 0) { $targetDaysBack = 0; }
     if ($targetDaysBack > 366) { $targetDaysBack = 366; }
 
     mysqli_query($con, "SET @target_max = DATE_SUB(CURDATE(), INTERVAL $targetDaysBack DAY)");
-    mysqli_query($con, "SET @calendar_shift = DATEDIFF(@target_max, (SELECT MAX(calendar_dates) FROM calendar))");
+    mysqli_query($con, "SET @calendar_shift = DATEDIFF(@target_max, (SELECT MAX(inDate) FROM tapin_logs))");
     mysqli_query($con, "SET @attendance_shift = DATEDIFF(@target_max, (SELECT MAX(date_record) FROM attendance_record))");
 
     $ok = true;
@@ -119,7 +127,7 @@
                                     <form method="post">
                                         <div class="form-group">
                                             <label class="small mb-1" for="window_days">Land the latest date this many days back from today</label>
-                                            <input class="form-control" type="number" id="window_days" name="window_days" min="0" max="366" value="1" />
+                                            <input class="form-control" type="number" id="window_days" name="window_days" min="0" max="366" value="0" />
                                             <small class="form-text text-muted">0 = latest date becomes today; 1 = yesterday, etc.</small>
                                         </div>
                                         <button type="submit" name="generate" class="btn mcl-blue" style="color:#fff;">Regenerate Demo Dates</button>

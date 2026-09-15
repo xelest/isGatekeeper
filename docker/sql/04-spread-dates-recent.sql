@@ -4,24 +4,31 @@
 -- reports) always show zero and look dead.
 --
 -- Shift (not randomly redistribute) calendar, tapin_logs, tapout_logs, and
--- attnmessage by the SAME number of days, anchored on calendar's own range.
--- This matters for correctness, not just cosmetics: reports_admin.php's
--- report generation (lastupdate.php) only produces rows for dates that
--- exist in `calendar` — calendar is the driver table. An earlier version of
--- this script shifted tap logs but not calendar, so Reports always showed
--- "no data" despite tap logs existing. It also redistributed each table
--- independently at random, which broke same-day tap-in/tap-out pairing
--- (duration calculations need a tap-in and tap-out to land on the same
--- shifted day). A uniform shift preserves both: relative spacing/weekday
--- pattern, and cross-table same-day relationships.
+-- attnmessage by the SAME number of days. This matters for correctness, not
+-- just cosmetics: reports_admin.php's report generation (lastupdate.php)
+-- only produces rows for dates that exist in `calendar` — calendar is the
+-- driver table. An earlier version of this script shifted tap logs but not
+-- calendar, so Reports always showed "no data" despite tap logs existing.
+-- It also redistributed each table independently at random, which broke
+-- same-day tap-in/tap-out pairing (duration calculations need a tap-in and
+-- tap-out to land on the same shifted day). A uniform shift preserves both:
+-- relative spacing/weekday pattern, and cross-table same-day relationships.
 --
--- attendance_record isn't read by the current reports_admin.php/
--- lastupdate.php flow, so it gets its own independent shift just to look
--- recent, with no cross-table alignment requirement.
-
+-- The shift is anchored on tapin_logs' own max date, not calendar's. In the
+-- shipped DEMO SQL dump, calendar's native date range already extends
+-- further than tapin_logs'/tapout_logs' (by ~2 weeks) — calendar has extra
+-- trailing entries with no matching tap activity. Anchoring on calendar (as
+-- an earlier version of this script did) always lands calendar's max on
+-- "yesterday", but tap logs then trail behind by that same ~2-week gap —
+-- Dashboard's live counters and "who's currently inside" read tapin_logs/
+-- tapout_logs directly by CURDATE(), so recent tap data (not calendar) is
+-- what actually needs to reach "today" for the demo to look alive.
+-- Anchoring on tap logs instead pushes calendar's window slightly into the
+-- future, which is harmless — Reports for a future calendar date with no
+-- tap data just shows "Absent", same as any other day nobody tapped in.
 SET @calendar_shift_days = DATEDIFF(
-  DATE_SUB(CURDATE(), INTERVAL 1 DAY),
-  (SELECT MAX(calendar_dates) FROM calendar)
+  CURDATE(),
+  (SELECT MAX(inDate) FROM tapin_logs)
 );
 
 UPDATE calendar
@@ -37,7 +44,7 @@ UPDATE attnmessage
 SET imsg_Date = DATE_ADD(imsg_Date, INTERVAL @calendar_shift_days DAY);
 
 SET @attendance_shift_days = DATEDIFF(
-  DATE_SUB(CURDATE(), INTERVAL 1 DAY),
+  CURDATE(),
   (SELECT MAX(date_record) FROM attendance_record)
 );
 
