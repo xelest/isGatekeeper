@@ -60,6 +60,7 @@ include_once 'lastupdate.php';
                                                 <th>Id No</th>
                                                 <th>Firstname</th>
                                                 <th>Lastname</th>
+                                                <th>Position</th>
                                                 <th>Date</th>
                                                 <th>Time In</th>
                                                 <th>Time Out</th>
@@ -73,7 +74,11 @@ include_once 'lastupdate.php';
                                             //config
                                             include_once('connection.php');
 
-                                            $msql = "SELECT * from reports_admin";
+                                            // Joined against user_account for acc_type (Admin/College/SHS/Teacher/...)
+                                            // so every account type is distinguishable here, not just Admins.
+                                            $msql = "SELECT ra.id_no, ra.Firstname, ra.Lastname, ua.acc_type AS Position, ra.Date, ra.TimeIn, ra.TimeOut, ra.Duration, ra.Remarks
+                                                      FROM reports_admin ra
+                                                      LEFT JOIN user_account ua ON ra.id_no = ua.id_no";
                                             //fetch
                                             $result1 = mysqli_query($con, $msql);
 
