@@ -62,7 +62,22 @@ others) was broken. No application code changes; Docker packaging only.
   relative to whenever the seed runs), preserving each row's original
   time-of-day and all id_no/rf_id relationships. Docker demo seed only —
   doesn't touch the canonical DEMO SQL dump.
+## [1.3.8] - 2026-09-15
 
+MINOR release. Adds a new admin page — a real application feature, not
+Docker packaging.
+
+### Added
+- **Demo Data Generator** (`demo_generator.php`) — a new System Admin page,
+  linked in the sidebar under Page Simulation. Shows the current
+  earliest/latest date and row count for tap-in logs, tap-out logs,
+  attendance, and messages, and lets an admin regenerate them on demand:
+  randomly redistributes every date across a configurable recent window
+  (default 76 days, ending today — roughly a July–September spread),
+  preserving each row's original time-of-day and all id_no/rf_id
+  relationships. Same logic as `docker/sql/04-spread-dates-recent.sql`
+  (v1.1.9), now available as an in-app tool instead of only at container
+  init — useful any time the demo data goes stale between deployments.
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application
