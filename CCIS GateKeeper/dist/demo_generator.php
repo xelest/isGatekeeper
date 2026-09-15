@@ -12,6 +12,44 @@
 
   $message = "";
 
+  // The shipped demo data's tapin_logs/tapout_logs reference some id_nos
+  // that were never carried into user_account (a gap in the sanitized
+  // dump), so any page joining tap logs against user_account for name/
+  // position shows "ND" for those ids. Self-healing: on every load, find
+  // any tap-log id_no missing from user_account and create a synthetic
+  // account for it, cycling through a small name pool. Runs unconditionally
+  // (not just on Regenerate) so the fix applies immediately and stays
+  // applied even if this page is only ever loaded, not submitted.
+  $namePool = array(
+    array('Santos', 'Miguel'), array('Reyes', 'Ella'), array('Bautista', 'Josh'),
+    array('Villanueva', 'Grace'), array('Ramos', 'Diego'), array('Torres', 'Mika'),
+    array('Castillo', 'Liam'), array('Flores', 'Nico'), array('Marquez', 'Anna'),
+    array('Aquino', 'Ruth'), array('Dela Cruz', 'Ivan'), array('Navarro', 'Faith'),
+    array('Pascual', 'Leon'), array('Domingo', 'Iris'), array('Rivera', 'Sam'),
+    array('Valdez', 'Mateo'), array('Ocampo', 'Zara'), array('Lim', 'Trisha'),
+    array('Guerrero', 'Enzo'), array('Salazar', 'Camille'),
+  );
+  $typePool = array('College', 'SHS', 'Teacher');
+
+  $missing = array();
+  $res = mysqli_query($con, "SELECT DISTINCT t.id_no FROM tapin_logs t
+                              LEFT JOIN user_account ua ON t.id_no = ua.id_no
+                              WHERE ua.id_no IS NULL");
+  if ($res) {
+    while ($row = mysqli_fetch_assoc($res)) { $missing[] = $row['id_no']; }
+  }
+  $linkedCount = 0;
+  foreach ($missing as $i => $idNo) {
+    $name = $namePool[$i % count($namePool)];
+    $type = $typePool[$i % count($typePool)];
+    $lastname = mysqli_real_escape_string($con, $name[0]);
+    $firstname = mysqli_real_escape_string($con, $name[1]);
+    $idNoEsc = mysqli_real_escape_string($con, $idNo);
+    $ok = mysqli_query($con, "INSERT INTO user_account (id_no, pass_word, lastname, firstname, acc_type, acc_status)
+                               VALUES ('$idNoEsc', '1', '$lastname', '$firstname', '$type', 'Active')");
+    if ($ok) { $linkedCount++; }
+  }
+
   if (isset($_POST['generate'])) {
     // Uniform shift, not random per-row redistribution: reports_admin.php's
     // report generation (lastupdate.php) only produces rows for dates
@@ -51,6 +89,11 @@
     }
   }
 
+  if ($linkedCount > 0) {
+    $linkedMsg = "<div class='alert alert-info'>Linked $linkedCount tap-log id(s) with no matching account to newly created synthetic accounts.</div>";
+    $message = $linkedMsg . $message;
+  }
+
   function summarize($con, $table, $dateCol) {
     $res = mysqli_query($con, "SELECT MIN($dateCol) mn, MAX($dateCol) mx, COUNT(*) c FROM $table");
     if (!$res) { return null; }
@@ -62,6 +105,12 @@
   $tapoutSummary = summarize($con, 'tapout_logs', 'outDate');
   $attendanceSummary = summarize($con, 'attendance_record', 'date_record');
   $msgSummary = summarize($con, 'attnmessage', 'imsg_Date');
+  $accountRes = mysqli_query($con, "SELECT COUNT(*) c FROM user_account");
+  $accountCount = $accountRes ? mysqli_fetch_assoc($accountRes)['c'] : 'ND';
+  $orphanRes = mysqli_query($con, "SELECT COUNT(DISTINCT t.id_no) c FROM tapin_logs t
+                                    LEFT JOIN user_account ua ON t.id_no = ua.id_no
+                                    WHERE ua.id_no IS NULL");
+  $orphanCount = $orphanRes ? mysqli_fetch_assoc($orphanRes)['c'] : 'ND';
 ?>
 
 <!doctype html>
@@ -106,6 +155,7 @@
                                             <tr><td>Tap-Out Logs</td><td><?php echo $tapoutSummary['mn']; ?></td><td><?php echo $tapoutSummary['mx']; ?></td><td><?php echo $tapoutSummary['c']; ?></td></tr>
                                             <tr><td>Attendance</td><td><?php echo $attendanceSummary['mn']; ?></td><td><?php echo $attendanceSummary['mx']; ?></td><td><?php echo $attendanceSummary['c']; ?></td></tr>
                                             <tr><td>Messages</td><td><?php echo $msgSummary['mn']; ?></td><td><?php echo $msgSummary['mx']; ?></td><td><?php echo $msgSummary['c']; ?></td></tr>
+                                            <tr><td>User Accounts</td><td colspan="2"><?php echo $orphanCount; ?> tap-log id(s) with no account</td><td><?php echo $accountCount; ?></td></tr>
                                         </tbody>
                                     </table>
                                 </div>
