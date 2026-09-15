@@ -1,4 +1,16 @@
+<?php
+    // session_start() must run before any output — moved here from further
+    // down the file, where HTML markup had already been sent, causing
+    // "Cannot start session when headers already sent".
+    session_start();
 
+    //onload variables
+    $newname = "NO DATA";
+    $xidno = "NO DATA";
+    $position = "NO DATA";
+    $frdaterange = "NO DATA";
+    $todaterange = "NO DATA";
+    ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,18 +25,6 @@
     <link href="css/mycss.css" rel="stylesheet">
 
     <link href="assets/vendor/airdatepicker/dist/css/datepicker.min.css" rel="stylesheet">
-
-
-
-    <?php
-    //onload variables
-    $newname = "NO DATA";
-    $xidno = "NO DATA";
-    $position = "NO DATA";
-    $frdaterange = "NO DATA";
-    $todaterange = "NO DATA";
-    session_start();
-    ?>
 
 
     
