@@ -124,7 +124,6 @@ Docker packaging.
   tap-out pairing. Same logic as `docker/sql/04-spread-dates-recent.sql`
   (v1.1.9), now available as an in-app tool instead of only at container
   init — useful any time the demo data goes stale between deployments.
-
 ## [1.3.9] - 2026-09-15
 
 Patch release.
@@ -148,7 +147,37 @@ Patch release.
   before first use. The include's own top-level cleanup queries already ran
   unconditionally on every page load either way — this only changes when in
   execution they run, not whether.
+## [1.3.10] - 2026-09-15
 
+Patch release. Sidebar cleanup, no functional changes.
+
+### Removed
+- **SHS Reports, College Reports, and Teachers Reports links** from the
+  Reports submenu in both `gatekeeper.php` (System Admin) and
+  `systemusers.php` (System User) sidebars. All three pointed at
+  `reports.php`/`reports_SHS.php` with no meaningful differentiation
+  between them in this build. The underlying page files are untouched;
+  only the sidebar entries were removed. "Admin Tap Logs" and "Admin
+  Reports" remain.
+## [1.3.11] - 2026-09-15
+
+Patch release. Sidebar UX tweak plus a bug fix in the same area.
+
+### Changed
+- **Renamed "RFID Tap In"/"RFID Tap Out" to "View Monitor Tap In"/"View
+  Monitor Tap Out"** in the System Admin sidebar (`gatekeeper.php`), and
+  split them into their own "Live Monitor" section, separate from the
+  "Tap In"/"Tap Out" simulation-modal triggers above them.
+
+### Fixed
+- **`pageredirect.php` threw `Warning: session_start(): Cannot start
+  session when headers already sent`, plus a knock-on `session_destroy():
+  Trying to destroy uninitialized session`** — same root cause as the
+  `reports_admin.php` fix in v1.3.9: `session_start()`/`session_destroy()`
+  were called from the bottom of the file, after the full HTML page (the
+  "Redirecting... Session Security" countdown screen) had already been
+  output. Fixed by moving both calls to the top of the file, before any
+  output.
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application

@@ -120,10 +120,6 @@
                                       <nav class="sb-sidenav-menu-nested nav">
                                       <a class="nav-link" href="admin_logs.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Admin Tap Logs</a>
                                       <a class="nav-link" href="reports_admin.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Admin Reports</a>
-                                      <a class="nav-link" href="reports_SHS.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> SHS Reports</a>
-                                      <a class="nav-link" href="reports.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> College Reports</a>
-                                      <a class="nav-link" href="reports.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Teachers Reports</a>
-                                          
                                       </nav>
                                   </div>
 
@@ -153,9 +149,13 @@
                             <li>
                                    <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#tapin"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Tap In</a>
                                    <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#tapout"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Tap Out</a>
-                                   <a class="nav-link" href="../../gatekeeperdevice/tap-in-new.php" target="_blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> RFID Tap In</a>
-                                   <a class="nav-link" href="../../gatekeeperdevice/tap-out-new.php" target="blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> RFID Tap Out</a>
                                    <a class="nav-link" href="demo_generator.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-magic"></i></div> Demo Data Generator</a>
+                            </li>
+
+                            <div class="sb-sidenav-menu-heading">Live Monitor</div>
+                            <li>
+                                   <a class="nav-link" href="../../gatekeeperdevice/tap-in-new.php" target="_blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> View Monitor Tap In</a>
+                                   <a class="nav-link" href="../../gatekeeperdevice/tap-out-new.php" target="blank"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> View Monitor Tap Out</a>
 
                                    <!-- <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#rstpwd" ><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Quick Password Reset</a>
                                    <a class="nav-link" href=".php" id="btn-confirm" data-toggle="modal" data-target="#regnew" ><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Register New User</a>
