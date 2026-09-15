@@ -3,6 +3,35 @@
 All notable changes to isGatekeeper are documented here.
 Versioning follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
+## [1.3.13] - 2026-09-15
+
+Patch release.
+
+### Fixed
+- **Reports/Admin Tap Logs only ever showed data for `Admin`-type
+  accounts** — `reports_admin` (the table driving both the Reports page and
+  Admin Tap Logs) was only ever populated for `user_account` rows with
+  `acc_type='Admin'`: `ND_UPDATER.php`, `lastupdate.php`'s `get_absents()` /
+  `update_duration()` / `update_hrs()`, `generator_report_update.php`, and
+  the live tap-in handler in `tap-in-new-data.php` all filtered their
+  seeding/update queries on `acc_type='Admin'`. Querying an SHS/College/
+  Teacher ID in Reports showed a correctly populated header (name/ID/date
+  range, from a separate lookup) but an empty Profile Report table, since no
+  rows for that ID existed at all. Removed the `acc_type='Admin'` filter
+  from all of the above so every account type gets seeded/updated rows.
+  Admin Tap Logs (`admin_logs.php`) already did an unfiltered
+  `SELECT * FROM reports_admin`, so it now shows every account type too
+  without needing its own change.
+- **Reports always labeled the queried person's position `Admin`/`Admins`
+  regardless of their actual account type** — `reports_admin.php` and
+  `print_report_admins_TESTING.php` hardcoded `$position` instead of
+  reading it from the user's row. Now reads the real `acc_type`.
+- **Reports' Print/Save button submitted to a misspelled, nonexistent file**
+  — the form's `action` was `print_repor_admins_TESTING.php` (missing a
+  't'); the real file is `print_report_admins_TESTING.php`.
+- **`print_report_admins_TESTING.php` threw the same `session_start()`
+  headers-already-sent warning fixed in `reports_admin.php` (v1.3.9)** —
+  same root cause, same fix: moved `session_start()` to the very first line.
 ## [1.3.12] - 2026-09-15
 
 Patch release. Fixes the dashboard's "Live Population" count and adds a
@@ -79,11 +108,26 @@ others) was broken. No application code changes; Docker packaging only.
 - `docker/sql/04-spread-dates-recent.sql` — the shipped DEMO SQL dump's tap
   logs, attendance records, and messages are all dated January 2020/2021, so
   the dashboard's live counters and "today" queries always showed zero and
-  the app looked dead. This spreads every row's date randomly across a
-  ~2.5-month recent window ending today (matching a July–September pattern
-  relative to whenever the seed runs), preserving each row's original
-  time-of-day and all id_no/rf_id relationships. Docker demo seed only —
-  doesn't touch the canonical DEMO SQL dump.
+  the app looked dead. Docker demo seed only — doesn't touch the canonical
+  DEMO SQL dump.
+
+### Fixed (same-day, before this script shipped in any release)
+- **Reports page showed "no data" for every query, and duration
+  calculations were wrong** — the first version of this script shifted
+  `tapin_logs`/`tapout_logs`/`attendance_record`/`attnmessage` but not
+  `calendar`. `reports_admin.php`'s report generation (`lastupdate.php`)
+  only produces rows for dates present in `calendar` — it's the driver
+  table — so Reports always showed "no data" against the new date range
+  despite tap logs existing. The first version also redistributed each
+  table's dates independently at random, which broke same-day tap-in/
+  tap-out pairing (duration calculations need both halves of a visit on the
+  same day). Replaced the random per-row redistribution with a uniform
+  shift (same day offset applied to `calendar`, `tapin_logs`,
+  `tapout_logs`, and `attnmessage` together, anchored on `calendar`'s own
+  range), which preserves both weekday pattern/spacing and cross-table
+  same-day relationships. `attendance_record` isn't read by the current
+  report-generation flow, so it keeps its own independent shift.
+
 ## [1.3.8] - 2026-09-15
 
 MINOR release. Adds a new admin page — a real application feature, not

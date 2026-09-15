@@ -1,4 +1,14 @@
+<?php
+    // session_start() must run before any output — see the identical fix in
+    // reports_admin.php (v1.3.9) for why this was moved to the top.
+    session_start();
 
+    $newname = "NO DATA";
+    $xidno = "NO DATA";
+    $position = "NO DATA";
+    $frdaterange = "NO DATA";
+    $todaterange = "NO DATA";
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,16 +23,6 @@
     <link href="css/mycss.css" rel="stylesheet">
 
     <link href="assets/vendor/airdatepicker/dist/css/datepicker.min.css" rel="stylesheet">
-
-
-    <?php
-    $newname = "NO DATA";
-    $xidno = "NO DATA";
-    $position = "NO DATA";
-    $frdaterange = "NO DATA";
-    $todaterange = "NO DATA";
-    session_start();
-    ?>
 
 
     
@@ -42,9 +42,92 @@
                 <?php
                 $connect = mysqli_connect("localhost", "root", "", "mclccisn_gatekeeper");
 
-                         //$query = "SELECT * FROM attnmessage";  
-                        // $result = mysqli_query($connect, $query);  
+                        // Same fix as reports_admin.php: this used to depend on the
+                        // reports_admin table, whose own cleanup pass deletes any row
+                        // still marked "Absent"/"ND" on every subsequent page load — it
+                        // never holds a stable, complete picture once every account type
+                        // is in scope, not just the 3 dense-attendance Admins. It also
+                        // called clear_absents()/get_absents() (defined in lastupdate.php)
+                        // before lastupdate.php was included (only at the very bottom of
+                        // this file), causing a fatal "Call to undefined function" on any
+                        // Print with the default "All" filter. Reads tapin_logs/
+                        // tapout_logs directly instead; see reports_admin.php's
+                        // build_report_rows() for the identical logic.
+                        function build_report_rows($connect, $xidno, $frdaterange, $todaterange, $xfilter) {
+                            $newfrdate = $frdaterange . ' 00:00:00';
+                            $newtodate = $todaterange . ' 23:59:59';
+                            $idEsc = mysqli_real_escape_string($connect, $xidno);
 
+                            if ($xfilter === 'Absent') {
+                                $rows = array();
+                                $dateRes = mysqli_query($connect, "SELECT calendar_dates FROM calendar WHERE calendar_dates BETWEEN '".mysqli_real_escape_string($connect,$frdaterange)."' AND '".mysqli_real_escape_string($connect,$todaterange)."' ORDER BY calendar_dates DESC");
+                                $dates = array();
+                                while ($d = mysqli_fetch_assoc($dateRes)) { $dates[] = $d['calendar_dates']; }
+
+                                if ($xidno !== '') {
+                                    $userRes = mysqli_query($connect, "SELECT id_no, firstname, lastname FROM user_account WHERE id_no='$idEsc'");
+                                } else {
+                                    $userRes = mysqli_query($connect, "SELECT id_no, firstname, lastname FROM user_account");
+                                }
+                                $users = array();
+                                while ($u = mysqli_fetch_assoc($userRes)) { $users[] = $u; }
+
+                                foreach ($dates as $date) {
+                                    foreach ($users as $u) {
+                                        $chk = mysqli_query($connect, "SELECT 1 FROM tapin_logs WHERE id_no='".$u['id_no']."' AND DATE(inDate)='$date' LIMIT 1");
+                                        if (mysqli_num_rows($chk) == 0) {
+                                            $rows[] = array(
+                                                'id_no' => $u['id_no'], 'Firstname' => $u['firstname'], 'Lastname' => $u['lastname'],
+                                                'Date' => $date, 'TimeIn' => 'ND', 'TimeOut' => 'ND', 'Duration' => 'ND', 'Remarks' => 'Absent',
+                                            );
+                                        }
+                                    }
+                                }
+                                return $rows;
+                            }
+
+                            $idFilterOut = $xidno !== '' ? " AND o.id_no='$idEsc'" : '';
+                            $tapouts = array();
+                            $outRes = mysqli_query($connect, "SELECT o.id_no, o.outDate FROM tapout_logs o WHERE o.outDate BETWEEN '$newfrdate' AND '$newtodate' $idFilterOut ORDER BY o.id_no, o.outDate ASC");
+                            while ($o = mysqli_fetch_assoc($outRes)) {
+                                $key = $o['id_no'] . '|' . substr($o['outDate'], 0, 10);
+                                if (!isset($tapouts[$key])) { $tapouts[$key] = array(); }
+                                $tapouts[$key][] = $o['outDate'];
+                            }
+
+                            $idFilterIn = $xidno !== '' ? " AND i.id_no='$idEsc'" : '';
+                            $inRes = mysqli_query($connect, "SELECT i.id_no, ua.firstname, ua.lastname, i.inDate
+                                                              FROM tapin_logs i LEFT JOIN user_account ua ON i.id_no = ua.id_no
+                                                              WHERE i.inDate BETWEEN '$newfrdate' AND '$newtodate' $idFilterIn
+                                                              ORDER BY i.id_no, i.inDate ASC");
+                            $rows = array();
+                            while ($row = mysqli_fetch_assoc($inRes)) {
+                                $inDate = $row['inDate'];
+                                $date = substr($inDate, 0, 10);
+                                $time = substr($inDate, 11, 5);
+                                $remarks = ($time < '07:00') ? 'ontime' : 'late';
+                                $key = $row['id_no'] . '|' . $date;
+                                $outDate = null;
+                                if (!empty($tapouts[$key])) { $outDate = array_shift($tapouts[$key]); }
+
+                                if ($xfilter !== 'All' && $xfilter !== $remarks) { continue; }
+
+                                $rows[] = array(
+                                    'id_no'     => $row['id_no'],
+                                    'Firstname' => $row['firstname'] !== null ? $row['firstname'] : 'ND',
+                                    'Lastname'  => $row['lastname'] !== null ? $row['lastname'] : 'ND',
+                                    'Date'      => $date,
+                                    'TimeIn'    => substr($inDate, 11),
+                                    'TimeOut'   => $outDate ? substr($outDate, 11) : 'ND',
+                                    'Duration'  => $outDate ? gmdate('H \h\o\u\r\s, i \m\i\n\u\t\e\s', strtotime($outDate) - strtotime($inDate)) : 'ND',
+                                    'Remarks'   => $remarks,
+                                );
+                            }
+                            usort($rows, function($a, $b) {
+                                return strcmp($b['Date'] . $b['TimeIn'], $a['Date'] . $a['TimeIn']);
+                            });
+                            return $rows;
+                        }
 
                         if(isset($_SESSION["id"]))
                         {
@@ -53,215 +136,40 @@
                                       $xidno = $_SESSION['id'];
                                       $xfilter = $_SESSION['xfilter'];
 
-                                      $str1 = "00:00:00";
-                                      $str2 = "23:59:00";
-
-                                      $newfrdate = $frdaterange . ' ' . $str1;
-                                      $newtodate = $todaterange . ' ' . $str2;
-
                                     if($frdaterange > $todaterange)
                                     {
                                         echo "<script>alert('invalid date range FROM is greater than TO')</script>;";
                                     }
-                                     else if ($frdaterange <= $todaterange && $xidno != '' && $xfilter == 'all')
+                                    else
                                     {
+                                        $validId = true;
+                                        if ($xidno !== '')
+                                        {
+                                            $query1 = "SELECT * FROM user_account WHERE `id_no`='".mysqli_real_escape_string($connect, $xidno)."' LIMIT 1";
+                                            $result1 = mysqli_query($connect, $query1);
+                                            if (mysqli_num_rows($result1) > 0)
+                                            {
+                                                $u = mysqli_fetch_assoc($result1);
+                                                $newname = $u['lastname'] . ' ' . $u['firstname'];
+                                                $position = $u['acc_type'];
+                                            }
+                                            else
+                                            {
+                                                $validId = false;
+                                                echo "<script>alert('".$xidno." is not a valid MCL ID')</script>;";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $newname = "ALL";
+                                            $position = "All";
+                                        }
 
-                                               $query = "SELECT * FROM reports_admin WHERE `id_no`='".$xidno."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' Group BY `Date` ORDER BY `Date` DESC ";  
-                                                $result = mysqli_query($connect, $query); 
-
-                                                //VALID USER EXIST 
-                                                 if(mysqli_num_rows($result) > 0)
-                                                 {
-                                                    $_POST['xprocess'] = "submit";
-                                                    $position = 'Admin';
-
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
-                                                    $_SESSION['query']  = $query1;
-                                                    $result1 = mysqli_query($connect, $query1);
-                                                     if(mysqli_num_rows($result1) > 0)
-                                                    { 
-                                                       while($row1 = $result1->fetch_assoc()) {
-                                                             $fma = $row1['firstname'];
-                                                             $lma = $row1['lastname'];
-                                                             $newname = $lma .' '. $fma;
-                                                       }
-
-                                                    }
-
-
-
-                                                 }
-                                                 else
-                                                {
-                                                    echo "<script>alert('".$xidno." is not a valid member of MCL Admins')</script>;";
-                                                     echo'
-                                                        <script>   
-                                                            document.getElementById("frdaterange").disabled = false;
-                                                            document.getElementById("todaterange").disabled = false;
-                                                            document.getElementById("xidno").disabled = false; </script> ';
-                                                }
-
-
-                                    } //
-                                    else if ($xidno == '' && $frdaterange <= $todaterange &&  $xfilter == 'All') 
-                                    { 
-                                               clear_absents();
-                                               $newname = "ALL";
-                                                $xidno = "ALL";
-                                                $position = "Admins";
-
-                                               $query = "SELECT * FROM reports_admin WHERE `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                    }
-                                    else if ($xidno == '' && $frdaterange <= $todaterange &&  $xfilter == 'late') 
-                                    { 
-
-                                               $newname = "ALL";
-                                               $xidno = "ALL";
-                                                $position = "Admins";
-                                               $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                    }
-                                    else if ($xidno == '' && $frdaterange <= $todaterange &&  $xfilter == 'ontime') 
-                                    { 
-
-                                               $newname = "ALL";
-                                               $xidno = "ALL";
-                                                $position = "Admins";
-                                               $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                    }
-                                     else if ($xidno != '' && $frdaterange <= $todaterange &&  $xfilter == 'All') 
-                                    { 
-
-                                              clear_absents();
-                                               $query = "SELECT * FROM reports_admin WHERE `id_no`='".$xidno."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-
-                                                $position = 'Admin';
-
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
-                                                    $_SESSION['query']  = $query1;
-                                                    $result1 = mysqli_query($connect, $query1);
-                                                     if(mysqli_num_rows($result1) > 0)
-                                                    { 
-                                                       while($row1 = $result1->fetch_assoc()) {
-                                                             $fma = $row1['firstname'];
-                                                             $lma = $row1['lastname'];
-                                                             $newname = $lma .' '. $fma;
-                                                       }
-
-                                                    }
-                                    }
-                                    else if ($xidno != '' && $frdaterange <= $todaterange &&  $xfilter == 'late') 
-                                    { 
-
-
-                                               $query = "SELECT * FROM reports_admin WHERE `id_no`='".$xidno."' AND `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                                $result = mysqli_query($connect, $query);
-                                                $_SESSION['query']  = $query;
-                                                $_SESSION['xfilter'] = $xfilter;
-                                                   $_POST['xprocess'] = "submit";
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                                                                                  $position = 'Admin';
-
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
-                                                    $_SESSION['query']  = $query1;
-                                                    $result1 = mysqli_query($connect, $query1);
-                                                     if(mysqli_num_rows($result1) > 0)
-                                                    { 
-                                                       while($row1 = $result1->fetch_assoc()) {
-                                                             $fma = $row1['firstname'];
-                                                             $lma = $row1['lastname'];
-                                                             $newname = $lma .' '. $fma;
-                                                       }
-
-                                                    }
-                                    }
-                                    else if ($xidno != '' && $frdaterange <= $todaterange &&  $xfilter == 'ontime') 
-                                    { 
-
-
-
-                                               $query = "SELECT * FROM reports_admin WHERE `id_no`='".$xidno."' AND `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-
-                                                    $position = 'Admin';
-
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
-                                                    $_SESSION['query']  = $query1;
-                                                    $result1 = mysqli_query($connect, $query1);
-                                                     if(mysqli_num_rows($result1) > 0)
-                                                    { 
-                                                       while($row1 = $result1->fetch_assoc()) {
-                                                             $fma = $row1['firstname'];
-                                                             $lma = $row1['lastname'];
-                                                             $newname = $lma .' '. $fma;
-                                                       }
-
-                                                    }
-
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                    }
-                                    else if ($xidno != '' && $frdaterange <= $todaterange &&  $xfilter == 'Absent') 
-                                    { 
-
-                                              get_absents();
-                                               $query = "SELECT * FROM reports_admin WHERE `id_no`='".$xidno."' AND `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-
-                                                                                           $position = 'Admin';
-
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
-                                                    $_SESSION['query']  = $query1;
-                                                    $result1 = mysqli_query($connect, $query1);
-                                                     if(mysqli_num_rows($result1) > 0)
-                                                    { 
-                                                       while($row1 = $result1->fetch_assoc()) {
-                                                             $fma = $row1['firstname'];
-                                                             $lma = $row1['lastname'];
-                                                             $newname = $lma .' '. $fma;
-                                                       }
-
-                                                    }
-                                     // echo "<script> alert('".$xidno." asd') </script>";
-                                    }
-                                     else if ($xidno == '' && $frdaterange <= $todaterange &&  $xfilter == 'Absent') 
-                                    { 
-
-                                              get_absents();
-                                               $newname = "ALL";
-                                               $xidno = "ALL";
-                                                $position = "Admins";
-                                               $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
-                                               $_SESSION['query']  = $query;
-                                               $_SESSION['xfilter'] = $xfilter;
-                                                $result = mysqli_query($connect, $query);
-                                                   $_POST['xprocess'] = "submit";
-
-                                     // echo "<script> alert('".$xidno." asd') </script>";
+                                        if ($validId)
+                                        {
+                                            $reportRows = build_report_rows($connect, $xidno, $frdaterange, $todaterange, $xfilter);
+                                            $_POST['xprocess'] = "submit";
+                                        }
                                     }
 
                         }
@@ -337,22 +245,22 @@
                         <?php
                         if(isset($_POST['xprocess']))
                         {
-                        while($row = mysqli_fetch_array($result))  
-                               {  
-                               ?>  
-                               <tr> 
-                                    <td><?php echo $row["id_no"]; ?></td>  
-                                    <td><?php echo $row["Firstname"]; ?></td> 
-                                    <td><?php echo $row["Lastname"]; ?></td> 
-                                    <td><?php echo $row["Date"]; ?></td> 
-                                    <td><?php echo $row["TimeIn"]; ?></td> 
-                                    <td><?php echo $row["TimeOut"]; ?></td> 
-                                    <td><?php echo $row["Duration"]; ?></td> 
-                                    <td><?php echo $row["Remarks"]; ?></td>  
-                               </tr>  
-                               <?php 
-                               } 
-                               }  
+                        foreach($reportRows as $row)
+                               {
+                               ?>
+                               <tr>
+                                    <td><?php echo $row["id_no"]; ?></td>
+                                    <td><?php echo $row["Firstname"]; ?></td>
+                                    <td><?php echo $row["Lastname"]; ?></td>
+                                    <td><?php echo $row["Date"]; ?></td>
+                                    <td><?php echo $row["TimeIn"]; ?></td>
+                                    <td><?php echo $row["TimeOut"]; ?></td>
+                                    <td><?php echo $row["Duration"]; ?></td>
+                                    <td><?php echo $row["Remarks"]; ?></td>
+                               </tr>
+                               <?php
+                               }
+                               }
                                ?>
                              </tbody>
                     <?PHP
@@ -437,9 +345,3 @@
 
 </body>
 </html>
-
-
-<?php
-
-    include 'lastupdate.php';
-?>

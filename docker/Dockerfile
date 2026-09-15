@@ -9,6 +9,15 @@ RUN docker-php-ext-install mysqli
 # /var/run/mysqld/mysqld.sock — point PHP at the right path.
 RUN echo "mysqli.default_socket = /var/run/mysqld/mysqld.sock" > /usr/local/etc/php/conf.d/mysqli-socket.ini
 
+# ND_UPDATER.php/lastupdate.php seed reports_admin with a nested per-date,
+# per-user loop (dozens of sequential queries per user) on every gatekeeper.php
+# page load. With all 23 demo accounts now seeded (not just the 3 Admins),
+# this routinely exceeds PHP's default 30s max_execution_time and gets killed
+# mid-run, leaving most accounts with no reports_admin rows at all — Admin Tap
+# Logs/Reports then only show whichever accounts finished before the timeout.
+# Docker demo only; not a fix to the underlying O(dates x users) query pattern.
+RUN echo "max_execution_time = 300" > /usr/local/etc/php/conf.d/max-execution-time.ini
+
 # Several pages (gatekeeper.php, dashboard3.php, systemusers.php,
 # tap-in-new.php, ...) use PHP-side relative paths like
 # "../../gatekeeperdevice/..." and browser-side relative links the same way,

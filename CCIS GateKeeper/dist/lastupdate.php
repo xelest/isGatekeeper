@@ -156,7 +156,7 @@ function get_absents()
         $newtodate = $date . ' ' . $str2;
 
         			//traversing admins
-        			$sqlz = "SELECT * FROM `user_account` WHERE acc_type='Admin'";
+        			$sqlz = "SELECT * FROM `user_account`";
 				    $resultz = $con->query($sqlz);
 
 				    if ($resultz->num_rows > 0) 
@@ -225,7 +225,7 @@ function update_duration()
         $newtodate = $date . ' ' . $str2;
 
         			//traversing admins
-        			$sqlz = "SELECT * FROM `user_account` WHERE acc_type='Admin'";
+        			$sqlz = "SELECT * FROM `user_account`";
 				    $resultz = $con->query($sqlz);
 
 				    if ($resultz->num_rows > 0) // selected user id
@@ -294,7 +294,7 @@ function update_hrs()
         $todate = $newtodate;
 
         			//traversing admins
-        			$sqlz = "SELECT * FROM `user_account` WHERE acc_type='Admin'";
+        			$sqlz = "SELECT * FROM `user_account`";
 				    $resultz = $con->query($sqlz);
 
 				    if ($resultz->num_rows > 0) // selected user id
