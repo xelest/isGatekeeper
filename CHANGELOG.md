@@ -22,6 +22,46 @@ CDN-only).
 - Uses only generic/sanitized imagery (campus photography, a placeholder
   avatar) — deliberately excludes the real student ID photos present
   elsewhere in the repo's `img/` folder.
+## [1.1.9] - 2026-09-15
+
+Patch release. Fixes the v1.1.8 Docker deployment, which only appeared to
+work — login and the handful of files touched by the v1.0.8 patch happened
+to succeed, but most of the app (dashboard, Activity Dashboard, and likely
+others) was broken. No application code changes; Docker packaging only.
+
+### Fixed
+- **Dashboard/Activity Dashboard crashed with `mysqli_connect(): (HY000/2002):
+  No such file or directory`** — most of the app's PHP connects to MySQL
+  with host `"localhost"`, which mysqli resolves via a local Unix socket
+  file, not TCP. Splitting app and db into separate containers meant no such
+  socket file existed in the app container, and container-to-container
+  networking alone can't fix that. Fixed by sharing a volume for
+  `/var/run/mysqld` between both containers and explicitly setting
+  `mysqli.default_socket` (this PHP image's compiled default,
+  `/tmp/mysql.sock`, doesn't match where the mysql:5.7 image actually puts
+  the socket).
+- **Activity Dashboard threw `file_put_contents(../../gatekeeperdevice/
+  UIDContainer.php): failed to open stream`, and the RFID Tap In/Out sidebar
+  links 404'd** — 5 files (`gatekeeper.php`, `dashboard3.php`,
+  `systemusers.php`, `tap-in-new.php`, and one more) use relative paths that
+  assume the real production layout: `gatekeeperdevice/` two directories
+  above `dist/`, as a sibling of `CCIS GateKeeper/`. v1.1.8 flattened both
+  into one webroot, breaking that assumption for both server-side file
+  writes and client-side navigation. Fixed by preserving the real directory
+  nesting inside the container instead of flattening it — the app now lives
+  at `/CCIS GateKeeper/dist/` with `/gatekeeperdevice/` as an actual sibling,
+  matching production. `docker/root-index.php` redirects the bare `/` to the
+  login page for convenience.
+
+### Added
+- `docker/sql/04-spread-dates-recent.sql` — the shipped DEMO SQL dump's tap
+  logs, attendance records, and messages are all dated January 2020/2021, so
+  the dashboard's live counters and "today" queries always showed zero and
+  the app looked dead. This spreads every row's date randomly across a
+  ~2.5-month recent window ending today (matching a July–September pattern
+  relative to whenever the seed runs), preserving each row's original
+  time-of-day and all id_no/rf_id relationships. Docker demo seed only —
+  doesn't touch the canonical DEMO SQL dump.
 
 ## [1.1.8] - 2026-09-15
 
