@@ -3,6 +3,36 @@
 All notable changes to isGatekeeper are documented here.
 Versioning follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
+## [1.3.13] - 2026-09-15
+
+Patch release.
+
+### Fixed
+- **Reports/Admin Tap Logs only ever showed data for `Admin`-type
+  accounts** — `reports_admin` (the table driving both the Reports page and
+  Admin Tap Logs) was only ever populated for `user_account` rows with
+  `acc_type='Admin'`: `ND_UPDATER.php`, `lastupdate.php`'s `get_absents()` /
+  `update_duration()` / `update_hrs()`, `generator_report_update.php`, and
+  the live tap-in handler in `tap-in-new-data.php` all filtered their
+  seeding/update queries on `acc_type='Admin'`. Querying an SHS/College/
+  Teacher ID in Reports showed a correctly populated header (name/ID/date
+  range, from a separate lookup) but an empty Profile Report table, since no
+  rows for that ID existed at all. Removed the `acc_type='Admin'` filter
+  from all of the above so every account type gets seeded/updated rows.
+  Admin Tap Logs (`admin_logs.php`) already did an unfiltered
+  `SELECT * FROM reports_admin`, so it now shows every account type too
+  without needing its own change.
+- **Reports always labeled the queried person's position `Admin`/`Admins`
+  regardless of their actual account type** — `reports_admin.php` and
+  `print_report_admins_TESTING.php` hardcoded `$position` instead of
+  reading it from the user's row. Now reads the real `acc_type`.
+- **Reports' Print/Save button submitted to a misspelled, nonexistent file**
+  — the form's `action` was `print_repor_admins_TESTING.php` (missing a
+  't'); the real file is `print_report_admins_TESTING.php`.
+- **`print_report_admins_TESTING.php` threw the same `session_start()`
+  headers-already-sent warning fixed in `reports_admin.php` (v1.3.9)** —
+  same root cause, same fix: moved `session_start()` to the very first line.
+
 ## [1.2.8] - 2026-09-15
 
 MINOR release. Adds a static, GitHub Pages–hosted product demo — no
@@ -94,6 +124,31 @@ Docker packaging.
   tap-out pairing. Same logic as `docker/sql/04-spread-dates-recent.sql`
   (v1.1.9), now available as an in-app tool instead of only at container
   init — useful any time the demo data goes stale between deployments.
+
+## [1.3.9] - 2026-09-15
+
+Patch release.
+
+### Fixed
+- **`reports_admin.php` threw `Warning: session_start(): Cannot start
+  session when headers already sent`** — `session_start()` was called from
+  inside a `<?php ?>` block partway down the file, after the `<!doctype
+  html>` and `<head>` markup (plus a leading blank line) had already been
+  output, which sends HTTP headers. The page still rendered, but
+  `$_SESSION['uname']` ("Report generation requested by: ...") and the
+  session-stored filter state (`$_SESSION['query']`, `$_SESSION['xfilter']`,
+  etc.) were silently broken. Fixed by moving `session_start()` to the very
+  first line of the file, before any output.
+- **`reports_admin.php` threw `Fatal error: Uncaught Error: Call to
+  undefined function clear_absents()`** on Generate — `clear_absents()` is
+  defined in `lastupdate.php`, but that file was only `include`d at the very
+  bottom of `reports_admin.php`, after two earlier calls to the function.
+  (The same bug exists identically in `print_report_admins_TESTING.php`,
+  not fixed here.) Fixed by moving the `include` to the top of the file,
+  before first use. The include's own top-level cleanup queries already ran
+  unconditionally on every page load either way — this only changes when in
+  execution they run, not whether.
+
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application

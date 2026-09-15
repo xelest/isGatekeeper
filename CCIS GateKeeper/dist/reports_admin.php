@@ -1,4 +1,25 @@
+<?php
+    // session_start() must run before any output — moved here from further
+    // down the file, where HTML markup had already been sent, causing
+    // "Cannot start session when headers already sent".
+    session_start();
 
+    // lastupdate.php defines clear_absents() (used below) and other helper
+    // functions, and was previously only included at the very bottom of
+    // this file — after those functions were already called, causing
+    // "Call to undefined function clear_absents()". Moved here so the
+    // functions exist before they're used. Its top-level cleanup queries
+    // already ran unconditionally on every page load either way (GET or
+    // POST), so this only changes when in execution they run, not whether.
+    include 'lastupdate.php';
+
+    //onload variables
+    $newname = "NO DATA";
+    $xidno = "NO DATA";
+    $position = "NO DATA";
+    $frdaterange = "NO DATA";
+    $todaterange = "NO DATA";
+    ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,18 +34,6 @@
     <link href="css/mycss.css" rel="stylesheet">
 
     <link href="assets/vendor/airdatepicker/dist/css/datepicker.min.css" rel="stylesheet">
-
-
-
-    <?php
-    //onload variables
-    $newname = "NO DATA";
-    $xidno = "NO DATA";
-    $position = "NO DATA";
-    $frdaterange = "NO DATA";
-    $todaterange = "NO DATA";
-    session_start();
-    ?>
 
 
     
@@ -543,7 +552,4 @@ else
 {
 
 }
-
-
-    include 'lastupdate.php';
 ?>
