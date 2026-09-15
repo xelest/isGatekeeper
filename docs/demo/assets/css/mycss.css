@@ -1,0 +1,56 @@
+
+    body{
+      background-color: #E2E2E2 !important;
+      color: #2F333D !important;
+    }
+
+    .mcl-blue{
+      background-color: #354664 !important;
+      color: #CCCC !important;
+    }
+
+    .mcl-darkgray{
+      background-color: #2F333D !important;
+      color: #CCCC !important;
+    }
+
+    .mcl-a-dark{
+      background-color: #2F333D !important;
+      color: #CCCC !important;
+    }
+    .mcl-a-dark:hover{
+      background-color: #195387 !important;
+      color: #white !important;
+    }
+
+    .card {
+        -webkit-box-shadow: 9px 9px 5px -11px rgba(0,0,0,0.65);
+        -moz-box-shadow: 9px 9px 5px -11px rgba(0,0,0,0.65);
+        box-shadow: 9px 9px 5px -11px rgba(0,0,0,0.65);
+        color: #2F333D !important;
+    }
+
+    .mcl-yellow{
+      background-color: #E3C369 !important;
+      color: #white !important;
+    }
+
+    .mcl-green{
+      background-color: #72CB74 !important;
+      color: #white !important;
+    }
+
+    .mcl-red{      
+      background-color: #E57466 !important;
+      color: #white !important;
+    }
+
+    .btn-primary{
+      background-color: #337AB7 !important;
+      color: #white !important;
+    }
+
+    .btn-primary:hover{
+      background-color: #286090 !important;
+      color: #white !important;
+    }

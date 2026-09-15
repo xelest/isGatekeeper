@@ -3,6 +3,26 @@
 All notable changes to isGatekeeper are documented here.
 Versioning follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
+## [1.2.8] - 2026-09-15
+
+MINOR release. Adds a static, GitHub Pages–hosted product demo — no
+application code changes, and no PHP/database dependency (pure HTML/CSS/JS,
+CDN-only).
+
+### Added
+- `docs/demo/index.html` — a self-contained recreation of the app's login,
+  dashboard, Users, Members, Tap Logs, Reports, Messaging, and RFID Tap-In
+  screens, styled to match the real app and driven by mock/sanitized demo
+  data (no live backend).
+- A scripted, AI-guide-voiced walkthrough (Shepherd.js) that highlights each
+  section in sequence with a "Start Guided Demo" button.
+- Reactive speech-bubble tips that pop up on real visitor interaction (typing
+  in the login fields, clicking a sidebar item for the first time, or
+  simulating an RFID tap) — not just the scripted tour.
+- Uses only generic/sanitized imagery (campus photography, a placeholder
+  avatar) — deliberately excludes the real student ID photos present
+  elsewhere in the repo's `img/` folder.
+
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application
