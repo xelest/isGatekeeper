@@ -79,6 +79,20 @@ Docker packaging.
   tap-out pairing. Same logic as `docker/sql/04-spread-dates-recent.sql`
   (v1.1.9), now available as an in-app tool instead of only at container
   init — useful any time the demo data goes stale between deployments.
+## [1.3.9] - 2026-09-15
+
+Patch release.
+
+### Fixed
+- **`reports_admin.php` threw `Warning: session_start(): Cannot start
+  session when headers already sent`** — `session_start()` was called from
+  inside a `<?php ?>` block partway down the file, after the `<!doctype
+  html>` and `<head>` markup (plus a leading blank line) had already been
+  output, which sends HTTP headers. The page still rendered, but
+  `$_SESSION['uname']` ("Report generation requested by: ...") and the
+  session-stored filter state (`$_SESSION['query']`, `$_SESSION['xfilter']`,
+  etc.) were silently broken. Fixed by moving `session_start()` to the very
+  first line of the file, before any output.
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application
