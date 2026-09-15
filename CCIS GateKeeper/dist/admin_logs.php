@@ -11,7 +11,7 @@
     <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
     <link href="assets/css/master.css" rel="stylesheet">
     <link href="css/mycss.css" rel="stylesheet">
-    
+
   <script src="js/script_date_time.js"></script>
 
   <style>
@@ -26,10 +26,17 @@
 </head>
 
 <?php
-
-include_once 'ND_UPDATER.php';
-include_once 'php prototyping/generator_report_update.php';
-include_once 'lastupdate.php';
+// This page used to depend on the `reports_admin` table (via ND_UPDATER.php/
+// lastupdate.php), which is built by a per-date/per-user seeding loop and
+// then has its own "Absent"/"ND" placeholder rows deleted again on every
+// subsequent page load's cleanup pass. For any (user, date) combination with
+// no real tap that day — the overwhelming majority, once every account type
+// is included instead of just the 3 Admins — the row gets inserted then
+// deleted on the very next request, so the table never stabilizes and this
+// page looked like it only ever showed a handful of accounts. Querying
+// tapin_logs/tapout_logs directly (joined to user_account for name/position)
+// sidesteps that entirely: it's a real, stable log of actual taps for every
+// account type, which is what "Tap Logs" should show in the first place.
 ?>
 
 <body>
@@ -39,7 +46,7 @@ include_once 'lastupdate.php';
                 <div class="container-fluid">
                     <div class="page-title">
                         <div class="row">
-                            <div class="col-7"><h3>Admin Tap Logs </h3></div>
+                            <div class="col-7"><h3>Member Log Records </h3></div>
 
                             <div class="col-5"><div class="card-body" style="text-align: right;" ><span id="date_time"></span></div></div>
                         </div>
@@ -74,32 +81,78 @@ include_once 'lastupdate.php';
                                             //config
                                             include_once('connection.php');
 
-                                            // Joined against user_account for acc_type (Admin/College/SHS/Teacher/...)
-                                            // so every account type is distinguishable here, not just Admins.
-                                            $msql = "SELECT ra.id_no, ra.Firstname, ra.Lastname, ua.acc_type AS Position, ra.Date, ra.TimeIn, ra.TimeOut, ra.Duration, ra.Remarks
-                                                      FROM reports_admin ra
-                                                      LEFT JOIN user_account ua ON ra.id_no = ua.id_no";
-                                            //fetch
+                                            // Tap-ins and tap-outs are fetched separately and paired sequentially
+                                            // per (id_no, date) — the n-th tap-in of the day with the n-th tap-out
+                                            // of the day — the same convention lastupdate.php's update_hours() uses
+                                            // elsewhere in the app. A same-day SQL JOIN on id_no alone fans out into
+                                            // every tap-in matching every tap-out that day (wrong pairings, nonsense/
+                                            // negative durations) whenever someone taps more than once in a day.
+                                            $tapouts = array();
+                                            $outRes = mysqli_query($con, "SELECT id_no, outDate FROM tapout_logs ORDER BY id_no, outDate ASC");
+                                            while ($o = mysqli_fetch_assoc($outRes)) {
+                                                $key = $o['id_no'] . '|' . substr($o['outDate'], 0, 10);
+                                                if (!isset($tapouts[$key])) { $tapouts[$key] = array(); }
+                                                $tapouts[$key][] = $o['outDate'];
+                                            }
+
+                                            // Not every id_no in tapin_logs has a matching user_account row in the
+                                            // shipped demo data (name/position show "ND" for those) — a pre-existing
+                                            // data gap in the seed, not something this page can resolve.
+                                            $msql = "SELECT i.id_no,
+                                                             ua.firstname AS Firstname,
+                                                             ua.lastname AS Lastname,
+                                                             ua.acc_type AS Position,
+                                                             i.inDate
+                                                      FROM tapin_logs i
+                                                      LEFT JOIN user_account ua ON i.id_no = ua.id_no
+                                                      ORDER BY i.id_no, i.inDate ASC";
                                             $result1 = mysqli_query($con, $msql);
 
-                                            //contents populate
+                                            $rows = array();
                                             while ($row1 = mysqli_fetch_assoc($result1)) {
-                                            echo "<tr>";
-                                            foreach ($row1 as $field => $value) {
-                                                echo "<td>" . $value . "</td>";
+                                                $inDate = $row1['inDate'];
+                                                $date = substr($inDate, 0, 10);
+                                                $key = $row1['id_no'] . '|' . $date;
+                                                $outDate = null;
+                                                if (!empty($tapouts[$key])) {
+                                                    $outDate = array_shift($tapouts[$key]);
+                                                }
+
+                                                $rows[] = array(
+                                                    'Id No'     => $row1['id_no'],
+                                                    'Firstname' => $row1['Firstname'] !== null ? $row1['Firstname'] : 'ND',
+                                                    'Lastname'  => $row1['Lastname'] !== null ? $row1['Lastname'] : 'ND',
+                                                    'Position'  => $row1['Position'] !== null ? $row1['Position'] : 'ND',
+                                                    'Date'      => $date,
+                                                    'Time In'   => substr($inDate, 11),
+                                                    'Time Out'  => $outDate ? substr($outDate, 11) : 'ND',
+                                                    'Duration'  => $outDate ? gmdate('H \h\o\u\r\s, i \m\i\n\u\t\e\s', strtotime($outDate) - strtotime($inDate)) : 'ND',
+                                                    'Remarks'   => $outDate ? 'Tapped Out' : 'Still Inside',
+                                                );
                                             }
-                                            echo "</tr>";
+
+                                            // Most recent tap-in first.
+                                            usort($rows, function($a, $b) {
+                                                return strcmp($b['Date'] . $b['Time In'], $a['Date'] . $a['Time In']);
+                                            });
+
+                                            foreach ($rows as $row1) {
+                                                echo "<tr>";
+                                                foreach ($row1 as $value) {
+                                                    echo "<td>" . htmlspecialchars($value) . "</td>";
+                                                }
+                                                echo "</tr>";
                                             }
-                                            ?>     
+                                            ?>
                                           </tbody>
                                     </table>
                                 </div>
                             </div>
-                        </div>                       
+                        </div>
                     </div>
                    <!--=============MODAL========== -->
                    <div class="col-6">
-                   
+
                    <!--=============MODAL========== -->
                </div>
 
@@ -110,7 +163,7 @@ include_once 'lastupdate.php';
 
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
-    
+
 
     <script src="assets/vendor/chartsjs/Chart.min.js"></script>
     <script src="assets/js/dashboard-charts.js"></script>

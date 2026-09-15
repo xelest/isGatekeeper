@@ -107,7 +107,7 @@
                             <li>    
                                     <a class="nav-link" id="users" href="users.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Users</a>
                                      <a class="nav-link" id="members" href="members.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Members</a>
-                                   <a class="nav-link" href="search_logs.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> All Tap Logs</a>
+                                   <a class="nav-link" href="search_logs.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> In and Out Tap Logs</a>
 
 
                                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#Reports" aria-expanded="false" aria-controls="collapseLayouts">
@@ -118,8 +118,8 @@
 
                                   <div class="collapse" id="Reports" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
                                       <nav class="sb-sidenav-menu-nested nav">
-                                      <a class="nav-link" href="admin_logs.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Admin Tap Logs</a>
-                                      <a class="nav-link" href="reports_admin.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Admin Reports</a>
+                                      <a class="nav-link" href="admin_logs.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Member Log Records</a>
+                                      <a class="nav-link" href="reports_admin.php" target="abc_frame"><div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div> Generate Report</a>
                                       </nav>
                                   </div>
 
