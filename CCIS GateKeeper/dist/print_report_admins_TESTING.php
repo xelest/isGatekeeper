@@ -1,4 +1,15 @@
 
+<?php
+    // session_start() must run before any output — see the identical fix in
+    // reports_admin.php (v1.3.9) for why this was moved to the top.
+    session_start();
+
+    $newname = "NO DATA";
+    $xidno = "NO DATA";
+    $position = "NO DATA";
+    $frdaterange = "NO DATA";
+    $todaterange = "NO DATA";
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,16 +24,6 @@
     <link href="css/mycss.css" rel="stylesheet">
 
     <link href="assets/vendor/airdatepicker/dist/css/datepicker.min.css" rel="stylesheet">
-
-
-    <?php
-    $newname = "NO DATA";
-    $xidno = "NO DATA";
-    $position = "NO DATA";
-    $frdaterange = "NO DATA";
-    $todaterange = "NO DATA";
-    session_start();
-    ?>
 
 
     
@@ -75,7 +76,7 @@
                                                     $_POST['xprocess'] = "submit";
                                                     $position = 'Admin';
 
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
+                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' LIMIT 1";
                                                     $_SESSION['query']  = $query1;
                                                     $result1 = mysqli_query($connect, $query1);
                                                      if(mysqli_num_rows($result1) > 0)
@@ -84,6 +85,7 @@
                                                              $fma = $row1['firstname'];
                                                              $lma = $row1['lastname'];
                                                              $newname = $lma .' '. $fma;
+                                                             $position = $row1['acc_type'];
                                                        }
 
                                                     }
@@ -93,7 +95,7 @@
                                                  }
                                                  else
                                                 {
-                                                    echo "<script>alert('".$xidno." is not a valid member of MCL Admins')</script>;";
+                                                    echo "<script>alert('".$xidno." is not a valid MCL ID')</script>;";
                                                      echo'
                                                         <script>   
                                                             document.getElementById("frdaterange").disabled = false;
@@ -108,7 +110,7 @@
                                                clear_absents();
                                                $newname = "ALL";
                                                 $xidno = "ALL";
-                                                $position = "Admins";
+                                                $position = "All";
 
                                                $query = "SELECT * FROM reports_admin WHERE `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
                                                $_SESSION['query']  = $query;
@@ -122,7 +124,7 @@
 
                                                $newname = "ALL";
                                                $xidno = "ALL";
-                                                $position = "Admins";
+                                                $position = "All";
                                                $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
                                                $_SESSION['query']  = $query;
                                                $_SESSION['xfilter'] = $xfilter;
@@ -135,7 +137,7 @@
 
                                                $newname = "ALL";
                                                $xidno = "ALL";
-                                                $position = "Admins";
+                                                $position = "All";
                                                $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
                                                $_SESSION['query']  = $query;
                                                $_SESSION['xfilter'] = $xfilter;
@@ -156,7 +158,7 @@
 
                                                 $position = 'Admin';
 
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
+                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' LIMIT 1";
                                                     $_SESSION['query']  = $query1;
                                                     $result1 = mysqli_query($connect, $query1);
                                                      if(mysqli_num_rows($result1) > 0)
@@ -165,6 +167,7 @@
                                                              $fma = $row1['firstname'];
                                                              $lma = $row1['lastname'];
                                                              $newname = $lma .' '. $fma;
+                                                             $position = $row1['acc_type'];
                                                        }
 
                                                     }
@@ -181,7 +184,7 @@
                                      // echo "<script> alert('".$xidno." asd') </script>";
                                                                                                   $position = 'Admin';
 
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
+                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' LIMIT 1";
                                                     $_SESSION['query']  = $query1;
                                                     $result1 = mysqli_query($connect, $query1);
                                                      if(mysqli_num_rows($result1) > 0)
@@ -190,6 +193,7 @@
                                                              $fma = $row1['firstname'];
                                                              $lma = $row1['lastname'];
                                                              $newname = $lma .' '. $fma;
+                                                             $position = $row1['acc_type'];
                                                        }
 
                                                     }
@@ -207,7 +211,7 @@
 
                                                     $position = 'Admin';
 
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
+                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' LIMIT 1";
                                                     $_SESSION['query']  = $query1;
                                                     $result1 = mysqli_query($connect, $query1);
                                                      if(mysqli_num_rows($result1) > 0)
@@ -216,6 +220,7 @@
                                                              $fma = $row1['firstname'];
                                                              $lma = $row1['lastname'];
                                                              $newname = $lma .' '. $fma;
+                                                             $position = $row1['acc_type'];
                                                        }
 
                                                     }
@@ -234,7 +239,7 @@
 
                                                                                            $position = 'Admin';
 
-                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' AND acc_type = 'Admin' LIMIT 1"; 
+                                                    $query1 = "SELECT * FROM user_account WHERE `id_no`='".$xidno."' LIMIT 1";
                                                     $_SESSION['query']  = $query1;
                                                     $result1 = mysqli_query($connect, $query1);
                                                      if(mysqli_num_rows($result1) > 0)
@@ -243,6 +248,7 @@
                                                              $fma = $row1['firstname'];
                                                              $lma = $row1['lastname'];
                                                              $newname = $lma .' '. $fma;
+                                                             $position = $row1['acc_type'];
                                                        }
 
                                                     }
@@ -254,7 +260,7 @@
                                               get_absents();
                                                $newname = "ALL";
                                                $xidno = "ALL";
-                                                $position = "Admins";
+                                                $position = "All";
                                                $query = "SELECT * FROM reports_admin WHERE `Remarks`='".$xfilter."' AND `Date` BETWEEN '".$frdaterange. "' AND '".$todaterange."' ORDER BY `Date` DESC ";  
                                                $_SESSION['query']  = $query;
                                                $_SESSION['xfilter'] = $xfilter;

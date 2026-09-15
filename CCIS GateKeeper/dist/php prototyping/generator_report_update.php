@@ -24,7 +24,7 @@ $timeout = "0";
        // echo $date;
        // echo " | ";
 
-        			$mysqlqry = "SELECT id_no FROM user_account WHERE acc_type = 'Admin'";
+        			$mysqlqry = "SELECT id_no FROM user_account";
         			$rs = $con->query($mysqlqry);
 					 if ($rs->num_rows > 0) {
 				      // output data of each row

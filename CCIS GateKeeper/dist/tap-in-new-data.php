@@ -243,7 +243,7 @@ function insert_admin_report($user)
                       {
                         require 'connection.php';
                         $idno = $user;
-                           $res3 = mysqli_query($con, "SELECT * FROM `user_account` WHERE `id_no`='".$user."' AND acc_type='Admin' LIMIT 1");
+                           $res3 = mysqli_query($con, "SELECT * FROM `user_account` WHERE `id_no`='".$user."' LIMIT 1");
                             if ($res3->num_rows > 0) 
                             {                
                                                   $date = date('Y-m-d');

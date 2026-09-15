@@ -26,7 +26,7 @@ $timeout = "0";
 
 
 					//get earliest time
-        			$sqlz = "SELECT * FROM `user_account` WHERE acc_type='Admin'";
+        			$sqlz = "SELECT * FROM `user_account`";
 				    $resultz = $con->query($sqlz);
 
 				    if ($resultz->num_rows > 0) 
