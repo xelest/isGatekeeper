@@ -13,22 +13,31 @@
   $message = "";
 
   if (isset($_POST['generate'])) {
-    $windowDays = isset($_POST['window_days']) ? (int)$_POST['window_days'] : 76;
-    if ($windowDays < 1) { $windowDays = 1; }
-    if ($windowDays > 366) { $windowDays = 366; }
+    // Uniform shift, not random per-row redistribution: reports_admin.php's
+    // report generation (lastupdate.php) only produces rows for dates
+    // present in `calendar` — it's the driver table — so calendar must
+    // move together with the tap logs, by the same offset, or Reports
+    // shows "no data" against the new range. A shared offset also keeps
+    // same-day tap-in/tap-out pairing intact (duration calculations need
+    // both halves of a visit on the same day), which independent random
+    // redistribution per table breaks.
+    $targetDaysBack = isset($_POST['window_days']) ? (int)$_POST['window_days'] : 1;
+    if ($targetDaysBack < 0) { $targetDaysBack = 0; }
+    if ($targetDaysBack > 366) { $targetDaysBack = 366; }
 
-    mysqli_query($con, "SET @window_end = CURDATE()");
-    mysqli_query($con, "SET @window_start = DATE_SUB(@window_end, INTERVAL $windowDays DAY)");
-    mysqli_query($con, "SET @window_span = DATEDIFF(@window_end, @window_start)");
+    mysqli_query($con, "SET @target_max = DATE_SUB(CURDATE(), INTERVAL $targetDaysBack DAY)");
+    mysqli_query($con, "SET @calendar_shift = DATEDIFF(@target_max, (SELECT MAX(calendar_dates) FROM calendar))");
+    mysqli_query($con, "SET @attendance_shift = DATEDIFF(@target_max, (SELECT MAX(date_record) FROM attendance_record))");
 
     $ok = true;
-    $ok = $ok && mysqli_query($con, "UPDATE tapin_logs SET inDate = ADDTIME(DATE_ADD(@window_start, INTERVAL FLOOR(RAND() * (@window_span + 1)) DAY), TIME(inDate))");
-    $ok = $ok && mysqli_query($con, "UPDATE tapout_logs SET outDate = ADDTIME(DATE_ADD(@window_start, INTERVAL FLOOR(RAND() * (@window_span + 1)) DAY), TIME(outDate))");
-    $ok = $ok && mysqli_query($con, "UPDATE attendance_record SET date_record = DATE_ADD(@window_start, INTERVAL FLOOR(RAND() * (@window_span + 1)) DAY) WHERE date_record IS NOT NULL");
-    $ok = $ok && mysqli_query($con, "UPDATE attnmessage SET imsg_Date = ADDTIME(DATE_ADD(@window_start, INTERVAL FLOOR(RAND() * (@window_span + 1)) DAY), TIME(imsg_Date))");
+    $ok = $ok && mysqli_query($con, "UPDATE calendar SET calendar_dates = DATE_ADD(calendar_dates, INTERVAL @calendar_shift DAY)");
+    $ok = $ok && mysqli_query($con, "UPDATE tapin_logs SET inDate = DATE_ADD(inDate, INTERVAL @calendar_shift DAY)");
+    $ok = $ok && mysqli_query($con, "UPDATE tapout_logs SET outDate = DATE_ADD(outDate, INTERVAL @calendar_shift DAY)");
+    $ok = $ok && mysqli_query($con, "UPDATE attnmessage SET imsg_Date = DATE_ADD(imsg_Date, INTERVAL @calendar_shift DAY)");
+    $ok = $ok && mysqli_query($con, "UPDATE attendance_record SET date_record = DATE_ADD(date_record, INTERVAL @attendance_shift DAY) WHERE date_record IS NOT NULL");
 
     if ($ok) {
-      $message = "<div class='alert alert-success'>Demo dates regenerated — spread across the last $windowDays days.</div>";
+      $message = "<div class='alert alert-success'>Demo dates regenerated — calendar, tap logs, and messages shifted together so the latest date lands $targetDaysBack day(s) back from today.</div>";
     } else {
       $message = "<div class='alert alert-danger'>Regeneration failed: " . htmlspecialchars(mysqli_error($con)) . "</div>";
     }
@@ -40,6 +49,7 @@
     return mysqli_fetch_assoc($res);
   }
 
+  $calendarSummary = summarize($con, 'calendar', 'calendar_dates');
   $tapinSummary = summarize($con, 'tapin_logs', 'inDate');
   $tapoutSummary = summarize($con, 'tapout_logs', 'outDate');
   $attendanceSummary = summarize($con, 'attendance_record', 'date_record');
@@ -83,6 +93,7 @@
                                     <table class="table table-sm table-striped">
                                         <thead><tr><th>Table</th><th>Earliest</th><th>Latest</th><th>Rows</th></tr></thead>
                                         <tbody>
+                                            <tr><td>Calendar (drives Reports)</td><td><?php echo $calendarSummary['mn']; ?></td><td><?php echo $calendarSummary['mx']; ?></td><td><?php echo $calendarSummary['c']; ?></td></tr>
                                             <tr><td>Tap-In Logs</td><td><?php echo $tapinSummary['mn']; ?></td><td><?php echo $tapinSummary['mx']; ?></td><td><?php echo $tapinSummary['c']; ?></td></tr>
                                             <tr><td>Tap-Out Logs</td><td><?php echo $tapoutSummary['mn']; ?></td><td><?php echo $tapoutSummary['mx']; ?></td><td><?php echo $tapoutSummary['c']; ?></td></tr>
                                             <tr><td>Attendance</td><td><?php echo $attendanceSummary['mn']; ?></td><td><?php echo $attendanceSummary['mx']; ?></td><td><?php echo $attendanceSummary['c']; ?></td></tr>
@@ -98,16 +109,18 @@
                                 <div class="card-header"><i class="fas fa-magic mr-1"></i> Regenerate Recent Dates</div>
                                 <div class="card-body">
                                     <p class="text-muted">
-                                        Randomly redistributes every tap-in, tap-out, attendance, and
-                                        message date across a recent window ending today, preserving
-                                        each row's original time-of-day and all ID relationships.
-                                        Demo/testing use only.
+                                        Shifts calendar, tap-in, tap-out, and message dates together
+                                        by the same offset (so Reports keeps working — it only
+                                        generates data for dates present in the calendar), plus
+                                        attendance on its own offset. Preserves time-of-day, weekday
+                                        pattern, and same-day tap-in/tap-out pairing. Demo/testing
+                                        use only.
                                     </p>
                                     <form method="post">
                                         <div class="form-group">
-                                            <label class="small mb-1" for="window_days">Window size (days back from today)</label>
-                                            <input class="form-control" type="number" id="window_days" name="window_days" min="1" max="366" value="76" />
-                                            <small class="form-text text-muted">76 days ≈ a July–September spread.</small>
+                                            <label class="small mb-1" for="window_days">Land the latest date this many days back from today</label>
+                                            <input class="form-control" type="number" id="window_days" name="window_days" min="0" max="366" value="1" />
+                                            <small class="form-text text-muted">0 = latest date becomes today; 1 = yesterday, etc.</small>
                                         </div>
                                         <button type="submit" name="generate" class="btn mcl-blue" style="color:#fff;">Regenerate Demo Dates</button>
                                     </form>

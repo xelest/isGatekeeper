@@ -70,12 +70,13 @@ Docker packaging.
 ### Added
 - **Demo Data Generator** (`demo_generator.php`) — a new System Admin page,
   linked in the sidebar under Page Simulation. Shows the current
-  earliest/latest date and row count for tap-in logs, tap-out logs,
-  attendance, and messages, and lets an admin regenerate them on demand:
-  randomly redistributes every date across a configurable recent window
-  (default 76 days, ending today — roughly a July–September spread),
-  preserving each row's original time-of-day and all id_no/rf_id
-  relationships. Same logic as `docker/sql/04-spread-dates-recent.sql`
+  earliest/latest date and row count for `calendar`, tap-in logs, tap-out
+  logs, attendance, and messages, and lets an admin regenerate them on
+  demand: shifts `calendar`, tap-in, tap-out, and message dates together by
+  the same offset (so Reports keeps working — it only generates data for
+  dates present in `calendar`), with attendance on its own independent
+  offset. Preserves time-of-day, weekday pattern, and same-day tap-in/
+  tap-out pairing. Same logic as `docker/sql/04-spread-dates-recent.sql`
   (v1.1.9), now available as an in-app tool instead of only at container
   init — useful any time the demo data goes stale between deployments.
 ## [1.1.8] - 2026-09-15
