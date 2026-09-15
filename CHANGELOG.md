@@ -102,7 +102,18 @@ Patch release.
   before first use. The include's own top-level cleanup queries already ran
   unconditionally on every page load either way — this only changes when in
   execution they run, not whether.
+## [1.3.10] - 2026-09-15
 
+Patch release. Sidebar cleanup, no functional changes.
+
+### Removed
+- **SHS Reports, College Reports, and Teachers Reports links** from the
+  Reports submenu in both `gatekeeper.php` (System Admin) and
+  `systemusers.php` (System User) sidebars. All three pointed at
+  `reports.php`/`reports_SHS.php` with no meaningful differentiation
+  between them in this build. The underlying page files are untouched;
+  only the sidebar entries were removed. "Admin Tap Logs" and "Admin
+  Reports" remain.
 ## [1.1.8] - 2026-09-15
 
 MINOR release. Adds a reusable Docker Compose deployment — no application
