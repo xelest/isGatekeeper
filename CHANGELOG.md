@@ -32,6 +32,27 @@ Patch release.
 - **`print_report_admins_TESTING.php` threw the same `session_start()`
   headers-already-sent warning fixed in `reports_admin.php` (v1.3.9)** —
   same root cause, same fix: moved `session_start()` to the very first line.
+## [1.3.12] - 2026-09-15
+
+Patch release. Fixes the dashboard's "Live Population" count and adds a
+"who's inside" list.
+
+### Fixed
+- **Dashboard "Live Population" showed 0 (or nonsense values)** —
+  `livepop.php` computed `COUNT(tap-ins today) - COUNT(tap-outs today)`, a
+  raw row-count difference for *today* only. That goes negative (clamped to
+  0) whenever more people tap out today than tap in today — including
+  people who originally tapped in on an earlier day, which is completely
+  normal. It's also not actually "how many people are inside," just today's
+  net traffic. Rewrote it with correct per-person logic: someone is
+  currently inside if their most recent tap-in is more recent than their
+  most recent tap-out (or they've never tapped out).
+
+### Added
+- **"Currently Inside Campus" panel** on the dashboard (`currently_inside.php`)
+  — lists ID, name, position, and tap-in time for everyone currently
+  inside, using the same corrected logic as the population count. Answers
+  "who's still inside" and, by omission, who's already tapped out.
 
 ## [1.2.8] - 2026-09-15
 
